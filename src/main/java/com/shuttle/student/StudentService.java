@@ -30,6 +30,7 @@ public class StudentService {
     private final WalletRepository walletRepository;
     private final VirtualBusCardRepository virtualBusCardRepository;
     private final MonthlyPassRepository monthlyPassRepository;
+    private final CardTokenService cardTokenService;
 
     @Transactional(readOnly = true)
     public StudentProfileResponse getMyProfile(Authentication authentication) {
@@ -65,11 +66,15 @@ public class StudentService {
                 wallet.getStatus().name()
         );
 
+        // Generate a short-lived, signed QR token (60 s TTL, no PII)
+        String qrToken = cardTokenService.generateQrToken(card.getCardId());
+
         return new StudentCardResponse(
                 card.getCardId(),
                 card.getStatus().name(),
                 passStatus,
-                walletSummary
+                walletSummary,
+                qrToken
         );
     }
 

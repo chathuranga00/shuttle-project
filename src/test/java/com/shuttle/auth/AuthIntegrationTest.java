@@ -257,7 +257,7 @@ class AuthIntegrationTest {
 
     @Test
     @Order(13)
-    @DisplayName("GET /api/students/me/card — valid student token returns card summary")
+    @DisplayName("GET /api/students/me/card — valid student token returns card summary with qrToken")
     void studentCard_validToken_returns200() throws Exception {
         assertThat(accessToken).as("accessToken must be set").isNotNull();
 
@@ -267,7 +267,11 @@ class AuthIntegrationTest {
                 .andExpect(jsonPath("$.cardId", notNullValue()))
                 .andExpect(jsonPath("$.cardStatus").value("ACTIVE"))
                 .andExpect(jsonPath("$.wallet.balance").value(0))
-                .andExpect(jsonPath("$.wallet.status").value("ACTIVE"));
+                .andExpect(jsonPath("$.wallet.status").value("ACTIVE"))
+                // qrToken must be a 3-part JWT (header.payload.signature)
+                .andExpect(jsonPath("$.qrToken", notNullValue()))
+                .andExpect(jsonPath("$.qrToken",
+                        org.hamcrest.Matchers.matchesPattern("^[\\w-]+\\.[\\w-]+\\.[\\w-]+$")));
     }
 
     @Test

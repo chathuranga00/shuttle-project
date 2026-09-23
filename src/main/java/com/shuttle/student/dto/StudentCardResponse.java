@@ -4,5 +4,6 @@ public record StudentCardResponse(
         String cardId,
         String cardStatus,
         String monthlyPassStatus,
-        WalletSummary wallet
+        WalletSummary wallet,
+        String qrToken
 ) {}
