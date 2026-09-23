@@ -14,7 +14,6 @@ TokenResponse _$TokenResponseFromJson(Map<String, dynamic> json) =>
       expiresIn: (json['expiresIn'] as num).toInt(),
     );
 
-// ignore: unused_element
 Map<String, dynamic> _$TokenResponseToJson(TokenResponse instance) =>
     <String, dynamic>{
       'accessToken': instance.accessToken,

@@ -7,15 +7,19 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/driver/presentation/screens/driver_dashboard_screen.dart';
+import '../../features/student/presentation/screens/profile_screen.dart';
 import '../../features/student/presentation/screens/student_dashboard_screen.dart';
+import '../../features/student/presentation/screens/virtual_bus_card_screen.dart';
 
 // ── Route names ───────────────────────────────────────────────────────────────
 class AppRoutes {
-  static const splash = '/';
-  static const login = '/login';
-  static const register = '/register';
-  static const forgotPassword = '/forgot-password';
+  static const splash          = '/';
+  static const login           = '/login';
+  static const register        = '/register';
+  static const forgotPassword  = '/forgot-password';
   static const studentDashboard = '/student';
+  static const busCard         = '/student/card';
+  static const profile         = '/student/profile';
   static const driverDashboard = '/driver';
 }
 
@@ -26,10 +30,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: _AuthChangeNotifier(ref),
     redirect: (context, state) {
       final authState = ref.read(authProvider);
-      final isOnSplash = state.matchedLocation == AppRoutes.splash;
-      final isOnAuth = state.matchedLocation == AppRoutes.login ||
-          state.matchedLocation == AppRoutes.register ||
-          state.matchedLocation == AppRoutes.forgotPassword;
+      final loc = state.matchedLocation;
+      final isOnSplash = loc == AppRoutes.splash;
+      final isOnAuth   = loc == AppRoutes.login ||
+          loc == AppRoutes.register ||
+          loc == AppRoutes.forgotPassword;
 
       // Still initialising — stay on splash
       if (authState.status == AuthStatus.unknown) {
@@ -41,7 +46,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return isOnAuth ? null : AppRoutes.login;
       }
 
-      // Logged in — redirect away from auth screens to the right dashboard
+      // Logged in — redirect away from auth / splash to the right dashboard
       if (authState.status == AuthStatus.authenticated) {
         if (isOnSplash || isOnAuth) {
           return authState.role == 'DRIVER'
@@ -72,6 +77,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.studentDashboard,
         builder: (_, __) => const StudentDashboardScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.busCard,
+        builder: (_, __) => const VirtualBusCardScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.profile,
+        builder: (_, __) => const ProfileScreen(),
       ),
       GoRoute(
         path: AppRoutes.driverDashboard,
