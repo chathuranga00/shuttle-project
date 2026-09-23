@@ -46,7 +46,11 @@ spring:
 app:
   jwt:
     secret: ${JWT_SECRET:dev-only-insecure-secret-do-not-use-in-prod}
-    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+    expiration-ms: ${JWT_EXPIRATION_MS:900000}
+    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
+  admin:
+    seed-email: ${ADMIN_SEED_EMAIL:admin@shuttle.dev}
+    seed-password: ${ADMIN_SEED_PASSWORD:Admin@1234}
 
 ---
 spring:
@@ -64,4 +68,5 @@ spring:
 app:
   jwt:
     secret: ${JWT_SECRET}
-    expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+    expiration-ms: ${JWT_EXPIRATION_MS:900000}
+    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}

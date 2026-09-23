@@ -32,6 +32,6 @@ public class Notification extends BaseEntity {
     @Column(nullable = false, length = 32)
     private NotificationType type;
 
-    @Column(name = "is_read", nullable = false, columnDefinition = "TINYINT(1)")
+    @Column(name = "is_read", nullable = false, columnDefinition = "BOOLEAN")
     private boolean read = false;
 }
