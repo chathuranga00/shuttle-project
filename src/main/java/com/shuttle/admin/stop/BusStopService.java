@@ -26,6 +26,7 @@ import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -118,8 +119,9 @@ public class BusStopService {
     /**
      * Verifies a scanned QR payload. Returns the stop if valid.
      * Payload format: {@code <stopCode>.<base64url(hmac)>}
+     * Runs in REQUIRES_NEW so exceptions here never contaminate caller transactions.
      */
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW, noRollbackFor = ApiException.class)
     public BusStop verifyQrPayload(String payload) {
         String[] parts = payload.split("\\.", 2);
         if (parts.length != 2) {
