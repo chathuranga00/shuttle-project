@@ -32,6 +32,15 @@ dependencies:
   # QR code rendering
   qr_flutter: ^4.1.0
 
+  # QR code scanning (camera)
+  mobile_scanner: ^5.2.3
+
+  # Connectivity monitoring
+  connectivity_plus: ^6.1.1
+
+  # UUID for idempotency keys
+  uuid: ^4.5.1
+
   # UI helpers
   cupertino_icons: ^1.0.8
 

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
+import '../../../../core/providers/connectivity_provider.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/widgets/connectivity_banner.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../boarding/presentation/providers/boarding_provider.dart';
 import '../providers/student_provider.dart';
 
 class StudentDashboardScreen extends ConsumerWidget {
@@ -39,10 +43,11 @@ class StudentDashboardScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: RefreshIndicator(
+      body: ConnectivityBanner(child: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(studentProfileProvider);
           ref.invalidate(studentCardProvider);
+          ref.invalidate(boardingHistoryProvider);
         },
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -112,25 +117,9 @@ class StudentDashboardScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // ── SCAN BOARDING QR button (inert per spec) ─────────
-                  ElevatedButton.icon(
-                    onPressed: null, // Not functional yet — spec §17
-                    icon: const Icon(Icons.qr_code_scanner_rounded),
-                    label: const Text('SCAN BOARDING QR'),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 56),
-                      disabledBackgroundColor:
-                          const Color(0xFF1A3A6B).withValues(alpha: 0.4),
-                      disabledForegroundColor: Colors.white70,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1,
-                      ),
-                    ),
+                  // ── SCAN BOARDING QR button ──────────────────────
+                  _ScanBoardingButton(
+                    onPressed: () => context.push(AppRoutes.qrScanner),
                   ),
                   const SizedBox(height: 24),
 
@@ -150,41 +139,29 @@ class StudentDashboardScreen extends ConsumerWidget {
                     onTap: () => context.push(AppRoutes.busRoutes),
                   ),
 
-                  // ── Recent journeys placeholder ───────────────────────
+                  // ── Recent journeys (real data) ───────────────────────
                   const SizedBox(height: 24),
-                  Text('Recent Journeys', style: theme.textTheme.titleLarge),
-                  const SizedBox(height: 12),
-                  Card(
-                    margin: EdgeInsets.zero,
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      leading: Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .primaryContainer,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          Icons.history_rounded,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Recent Journeys',
+                          style: theme.textTheme.titleLarge),
+                      TextButton(
+                        onPressed: () =>
+                            context.push(AppRoutes.travelHistory),
+                        child: const Text('View all'),
                       ),
-                      title: const Text('No recent journeys'),
-                      subtitle: const Text(
-                          'Your boarding history will appear here'),
-                    ),
+                    ],
                   ),
+                  const SizedBox(height: 12),
+                  const _RecentJourneys(),
                   const SizedBox(height: 32),
                 ]),
               ),
             ),
           ],
         ),
-      ),
+      )),  // ConnectivityBanner closes here
     );
   }
 }
@@ -456,6 +433,179 @@ class _InfoRowSkeleton extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ── Scan Boarding QR button ───────────────────────────────────────────────────
+class _ScanBoardingButton extends ConsumerWidget {
+  const _ScanBoardingButton({required this.onPressed});
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isOnline = ref.watch(isOnlineProvider);
+    const navy = Color(0xFF1A3A6B);
+
+    return ElevatedButton.icon(
+      onPressed: isOnline ? onPressed : null,
+      icon: const Icon(Icons.qr_code_scanner_rounded),
+      label: Text(isOnline ? 'SCAN BOARDING QR' : 'OFFLINE — SCAN DISABLED'),
+      style: ElevatedButton.styleFrom(
+        minimumSize: const Size(double.infinity, 56),
+        backgroundColor: navy,
+        foregroundColor: Colors.white,
+        disabledBackgroundColor: navy.withValues(alpha: 0.35),
+        disabledForegroundColor: Colors.white54,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        textStyle: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Recent journeys (real data, up to 3 items) ────────────────────────────────
+class _RecentJourneys extends ConsumerWidget {
+  const _RecentJourneys();
+
+  static final _dateFmt = DateFormat('d MMM  HH:mm');
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final historyAsync = ref.watch(boardingHistoryProvider);
+    final theme = Theme.of(context);
+
+    return historyAsync.when(
+      loading: () => const Center(
+          child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: CircularProgressIndicator(),
+      )),
+      error: (_, __) => Card(
+        margin: EdgeInsets.zero,
+        child: ListTile(
+          leading: const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+          title: const Text('Could not load journeys'),
+          trailing: TextButton(
+            onPressed: () => ref.invalidate(boardingHistoryProvider),
+            child: const Text('Retry'),
+          ),
+        ),
+      ),
+      data: (items) {
+        if (items.isEmpty) {
+          return Card(
+            margin: EdgeInsets.zero,
+            child: ListTile(
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              leading: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.history_rounded,
+                    color: theme.colorScheme.primary),
+              ),
+              title: const Text('No recent journeys'),
+              subtitle:
+                  const Text('Your boarding history will appear here'),
+            ),
+          );
+        }
+
+        final recent = items.take(3).toList();
+        return Column(
+          children: recent.map((item) {
+            final isPaid = item.isPaid;
+            DateTime? dt;
+            try { dt = DateTime.parse(item.boardedAt).toLocal(); } catch (_) {}
+
+            return Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 6),
+                leading: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.directions_bus_rounded,
+                      color: theme.colorScheme.primary, size: 22),
+                ),
+                title: Text(item.routeName,
+                    style: theme.textTheme.titleMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+                subtitle: Text(
+                  [
+                    item.busStopName,
+                    if (dt != null) _dateFmt.format(dt),
+                  ].join('  ·  '),
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(fontSize: 12),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                trailing: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      item.fareAmount != null
+                          ? 'LKR ${item.fareAmount!.toStringAsFixed(2)}'
+                          : '—',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(top: 3),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isPaid
+                            ? Colors.green.withValues(alpha: 0.1)
+                            : Colors.orange.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isPaid
+                              ? Colors.green.shade400
+                              : Colors.orange.shade400,
+                          width: 0.7,
+                        ),
+                      ),
+                      child: Text(
+                        item.paymentStatus,
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: isPaid
+                              ? Colors.green.shade700
+                              : Colors.orange.shade800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
     );
   }
 }
