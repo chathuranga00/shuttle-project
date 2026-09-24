@@ -26,3 +26,5 @@ app:
   admin:
     seed-email: admin@test.dev
     seed-password: Admin@1234
+  pass:
+    mock-paid-enabled: true

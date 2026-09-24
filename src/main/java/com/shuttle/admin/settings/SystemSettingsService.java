@@ -61,6 +61,14 @@ public class SystemSettingsService {
                 .orElse(true);
     }
 
+    /** Typed accessor — monthly pass price in LKR (default 2500). */
+    @Transactional(readOnly = true)
+    public java.math.BigDecimal getMonthlyPassPrice() {
+        return settingRepository.findBySettingKey("pass.price.monthly")
+                .map(s -> new java.math.BigDecimal(s.getSettingValue()))
+                .orElse(new java.math.BigDecimal("2500.00"));
+    }
+
     /** Returns current GPS / system config as a typed DTO. */
     @Transactional(readOnly = true)
     public SystemConfigResponse getSystemConfig() {

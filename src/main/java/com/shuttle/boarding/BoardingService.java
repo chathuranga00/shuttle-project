@@ -10,6 +10,8 @@ import com.shuttle.boarding.dto.ValidateBoardingResponse;
 import com.shuttle.domain.entity.BoardingRecord;
 import com.shuttle.domain.entity.BusStop;
 import com.shuttle.domain.entity.Fare;
+import com.shuttle.domain.entity.MonthlyPass;
+import com.shuttle.domain.repository.MonthlyPassRepository;
 import com.shuttle.domain.entity.Student;
 import com.shuttle.domain.entity.Trip;
 import com.shuttle.domain.entity.VirtualBusCard;
@@ -62,6 +64,7 @@ public class BoardingService {
     private final BoardingRecordRepository   boardingRecordRepository;
     private final BoardingWriter             boardingWriter;
     private final GpsVerificationService     gpsVerificationService;
+    private final MonthlyPassRepository      monthlyPassRepository;
 
     // ── Validate (read-only, nothing is saved) ────────────────────────────────
 
@@ -187,15 +190,26 @@ public class BoardingService {
             throw new ApiException(HttpStatus.CONFLICT, "ALREADY_BOARDED", MSG_ALREADY_BOARDED);
         }
 
-        // 8. Calculate fare from the fares table — never from client input
-        BigDecimal fareAmount = fareService
-                .findCurrentFareEntity(trip.getRoute().getId(), stop.getId())
-                .map(Fare::getAmount)
+        // 8. Calculate fare: active monthly pass → fare=0, paymentStatus=PASS;
+        //    otherwise look up from fares table (never from client).
+        java.time.LocalDate today = java.time.LocalDate.now();
+        MonthlyPass activePass = monthlyPassRepository
+                .findActivePassForDate(student.getId(), today)
                 .orElse(null);
+
+        BigDecimal fareAmount;
+        if (activePass != null) {
+            fareAmount = BigDecimal.ZERO;
+        } else {
+            fareAmount = fareService
+                    .findCurrentFareEntity(trip.getRoute().getId(), stop.getId())
+                    .map(Fare::getAmount)
+                    .orElse(null);
+        }
 
         // 9. Persist boarding record via the writer (owns its own @Transactional)
         return boardingWriter.save(student, trip, stop, fareAmount,
-                req.idempotencyKey(), coord);
+                req.idempotencyKey(), coord, activePass);
     }
 
     // ── History (read-only) ───────────────────────────────────────────────────

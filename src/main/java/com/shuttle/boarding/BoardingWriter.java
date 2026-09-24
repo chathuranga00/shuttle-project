@@ -3,6 +3,7 @@ package com.shuttle.boarding;
 import com.shuttle.boarding.dto.BoardingConfirmResponse;
 import com.shuttle.domain.entity.BoardingRecord;
 import com.shuttle.domain.entity.BusStop;
+import com.shuttle.domain.entity.MonthlyPass;
 import com.shuttle.domain.entity.Student;
 import com.shuttle.domain.entity.Trip;
 import com.shuttle.domain.repository.BoardingRecordRepository;
@@ -30,7 +31,7 @@ public class BoardingWriter {
     @Transactional
     public BoardingConfirmResponse save(Student student, Trip trip,
             BusStop stop, BigDecimal fareAmount, String idempotencyKey,
-            GpsCoordinate coord) {
+            GpsCoordinate coord, MonthlyPass activePass) {
 
         BoardingRecord record = new BoardingRecord();
         record.setTrip(trip);
@@ -39,7 +40,14 @@ public class BoardingWriter {
         record.setBoardedAt(Instant.now());
         record.setFareAmount(fareAmount);
         record.setIdempotencyKey(idempotencyKey);
-        record.setPaymentStatus("UNPAID");
+
+        // If the student used a monthly pass, zero-fare and mark accordingly
+        if (activePass != null) {
+            record.setMonthlyPass(activePass);
+            record.setPaymentStatus("PASS");
+        } else {
+            record.setPaymentStatus("UNPAID");
+        }
 
         // Persist GPS coordinates if provided
         if (coord != null && coord.isPresent()) {

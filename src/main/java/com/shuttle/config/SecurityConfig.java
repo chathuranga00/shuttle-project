@@ -77,6 +77,9 @@ public class SecurityConfig {
                         // Boarding — students only
                         .requestMatchers("/api/boarding/**").hasRole("STUDENT")
 
+                        // Monthly pass — students only
+                        .requestMatchers("/api/monthly-pass/**").hasRole("STUDENT")
+
                         // Card verification — driver or admin only
                         .requestMatchers(HttpMethod.POST, "/api/cards/verify").hasAnyRole("DRIVER", "ADMIN")
 
