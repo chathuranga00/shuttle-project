@@ -11,6 +11,7 @@ import '../../features/boarding/presentation/screens/boarding_result_screen.dart
 import '../../features/boarding/presentation/screens/qr_scanner_screen.dart';
 import '../../features/boarding/presentation/screens/travel_history_screen.dart';
 import '../../features/driver/presentation/screens/driver_dashboard_screen.dart';
+import '../../features/pass/presentation/screens/monthly_pass_screen.dart';
 import '../../features/routes/presentation/screens/bus_routes_screen.dart';
 import '../../features/routes/presentation/screens/bus_stops_screen.dart';
 import '../../features/student/presentation/screens/profile_screen.dart';
@@ -32,6 +33,7 @@ class AppRoutes {
   static const boardingConfirm   = '/boarding/confirm';
   static const boardingResult    = '/boarding/result';
   static const travelHistory     = '/boarding/history';
+  static const monthlyPass       = '/pass';
   static const driverDashboard   = '/driver';
 }
 
@@ -121,6 +123,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       GoRoute(path: AppRoutes.travelHistory,
           builder: (_, __) => const TravelHistoryScreen()),
+
+      GoRoute(path: AppRoutes.monthlyPass,
+          builder: (_, __) => const MonthlyPassScreen()),
 
       // ── Driver ────────────────────────────────────────────────────────
       GoRoute(path: AppRoutes.driverDashboard,

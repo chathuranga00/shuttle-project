@@ -8,6 +8,7 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/connectivity_banner.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../boarding/presentation/providers/boarding_provider.dart';
+import '../../../pass/presentation/providers/pass_provider.dart';
 import '../providers/student_provider.dart';
 
 class StudentDashboardScreen extends ConsumerWidget {
@@ -48,6 +49,7 @@ class StudentDashboardScreen extends ConsumerWidget {
           ref.invalidate(studentProfileProvider);
           ref.invalidate(studentCardProvider);
           ref.invalidate(boardingHistoryProvider);
+          ref.invalidate(passStatusProvider);
         },
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -91,29 +93,37 @@ class StudentDashboardScreen extends ConsumerWidget {
                   cardAsync.when(
                     loading: () => const _InfoRowSkeleton(),
                     error: (_, __) => const SizedBox.shrink(),
-                    data: (card) => Row(
-                      children: [
-                        Expanded(
-                          child: _InfoTile(
-                            icon: Icons.account_balance_wallet_rounded,
-                            label: 'Wallet Balance',
-                            value: 'LKR ${card.wallet.balance}',
-                            iconColor: const Color(0xFF1A3A6B),
+                    data: (card) {
+                      final passAsync = ref.watch(passStatusProvider);
+                      final passLabel = passAsync.maybeWhen(
+                        data: (p) => p.coveringToday ? 'ACTIVE' : p.status,
+                        orElse: () => card.monthlyPassStatus,
+                      );
+                      final passColor = passLabel == 'ACTIVE'
+                          ? Colors.green.shade700
+                          : Colors.grey;
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: _InfoTile(
+                              icon: Icons.account_balance_wallet_rounded,
+                              label: 'Wallet Balance',
+                              value: 'LKR ${card.wallet.balance}',
+                              iconColor: const Color(0xFF1A3A6B),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _InfoTile(
-                            icon: Icons.confirmation_num_rounded,
-                            label: 'Monthly Pass',
-                            value: card.monthlyPassStatus,
-                            iconColor: card.hasActivePass
-                                ? Colors.green.shade700
-                                : Colors.grey,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _InfoTile(
+                              icon: Icons.confirmation_num_rounded,
+                              label: 'Monthly Pass',
+                              value: passLabel,
+                              iconColor: passColor,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 24),
 
@@ -137,6 +147,12 @@ class StudentDashboardScreen extends ConsumerWidget {
                     label: 'Find a Route',
                     subtitle: 'Browse available shuttle routes & fares',
                     onTap: () => context.push(AppRoutes.busRoutes),
+                  ),
+                  _ActionTile(
+                    icon: Icons.confirmation_num_rounded,
+                    label: 'Monthly Pass',
+                    subtitle: 'View or purchase a monthly pass',
+                    onTap: () => context.push(AppRoutes.monthlyPass),
                   ),
 
                   // ── Recent journeys (real data) ───────────────────────
