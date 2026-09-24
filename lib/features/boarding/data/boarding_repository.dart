@@ -17,11 +17,17 @@ class BoardingRepository {
   Future<ValidateBoardingResponse> validate({
     required String stopQrPayload,
     int? tripId,
+    double? latitude,
+    double? longitude,
+    double? accuracyMeters,
   }) async {
     try {
       final response = await _dio.post('/api/boarding/validate', data: {
         'stopQrPayload': stopQrPayload,
         if (tripId != null) 'tripId': tripId,
+        if (latitude != null) 'latitude': latitude,
+        if (longitude != null) 'longitude': longitude,
+        if (accuracyMeters != null) 'accuracyMeters': accuracyMeters,
       });
       return ValidateBoardingResponse.fromJson(
           response.data as Map<String, dynamic>);
@@ -38,6 +44,9 @@ class BoardingRepository {
     required String stopQrPayload,
     required int tripId,
     String? idempotencyKey,
+    double? latitude,
+    double? longitude,
+    double? accuracyMeters,
   }) async {
     final key = idempotencyKey ?? _uuid.v4();
     try {
@@ -45,6 +54,9 @@ class BoardingRepository {
         'stopQrPayload': stopQrPayload,
         'tripId': tripId,
         'idempotencyKey': key,
+        if (latitude != null) 'latitude': latitude,
+        if (longitude != null) 'longitude': longitude,
+        if (accuracyMeters != null) 'accuracyMeters': accuracyMeters,
       });
       return BoardingConfirmResponse.fromJson(
           response.data as Map<String, dynamic>);

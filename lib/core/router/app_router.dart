@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../features/auth/presentation/providers/auth_provider.dart';
-import '../../features/auth/presentation/screens/forgot_password_screen.dart';
+import '../../features/auth/presentation/providers/auth_provider.dart';import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
@@ -105,8 +104,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>;
           return BoardingConfirmScreen(
-            stopQrPayload: extra['payload'] as String,
+            stopQrPayload: extra['payload']    as String,
             validation:    extra['validation'] as ValidateBoardingResponse,
+            position:      extra['position'],   // Position? — null when GPS unavailable
           );
         },
       ),

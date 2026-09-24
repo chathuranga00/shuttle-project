@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/providers/connectivity_provider.dart';
+import '../../../../core/providers/location_provider.dart';
 import '../../../../core/router/app_router.dart';
 import '../../data/boarding_repository.dart';
 import '../../data/models/validate_boarding_response.dart';
@@ -15,10 +17,13 @@ class BoardingConfirmScreen extends ConsumerStatefulWidget {
     super.key,
     required this.stopQrPayload,
     required this.validation,
+    this.position,
   });
 
   final String stopQrPayload;
   final ValidateBoardingResponse validation;
+  /// GPS position captured at scan time — passed through to confirm call.
+  final Position? position;
 
   @override
   ConsumerState<BoardingConfirmScreen> createState() =>
@@ -38,10 +43,21 @@ class _BoardingConfirmScreenState
     }
 
     setState(() => _isConfirming = true);
+
+    // Refresh location at confirm time for highest accuracy
+    Position? position = widget.position;
+    final locResult = await requestLocation();
+    if (locResult is LocationAvailable) {
+      position = locResult.position;
+    }
+
     try {
       final result = await ref.read(boardingRepositoryProvider).confirm(
             stopQrPayload: widget.stopQrPayload,
-            tripId: widget.validation.tripId!,
+            tripId:         widget.validation.tripId!,
+            latitude:       position?.latitude,
+            longitude:      position?.longitude,
+            accuracyMeters: position?.accuracy,
           );
 
       if (!mounted) return;
