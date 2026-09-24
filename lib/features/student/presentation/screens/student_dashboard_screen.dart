@@ -143,6 +143,12 @@ class StudentDashboardScreen extends ConsumerWidget {
                     subtitle: 'View card, QR code & wallet balance',
                     onTap: () => context.push(AppRoutes.busCard),
                   ),
+                  _ActionTile(
+                    icon: Icons.route_rounded,
+                    label: 'Find a Route',
+                    subtitle: 'Browse available shuttle routes & fares',
+                    onTap: () => context.push(AppRoutes.busRoutes),
+                  ),
 
                   // ── Recent journeys placeholder ───────────────────────
                   const SizedBox(height: 24),
