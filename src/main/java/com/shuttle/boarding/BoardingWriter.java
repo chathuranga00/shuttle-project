@@ -29,7 +29,8 @@ public class BoardingWriter {
 
     @Transactional
     public BoardingConfirmResponse save(Student student, Trip trip,
-            BusStop stop, BigDecimal fareAmount, String idempotencyKey) {
+            BusStop stop, BigDecimal fareAmount, String idempotencyKey,
+            GpsCoordinate coord) {
 
         BoardingRecord record = new BoardingRecord();
         record.setTrip(trip);
@@ -39,6 +40,12 @@ public class BoardingWriter {
         record.setFareAmount(fareAmount);
         record.setIdempotencyKey(idempotencyKey);
         record.setPaymentStatus("UNPAID");
+
+        // Persist GPS coordinates if provided
+        if (coord != null && coord.isPresent()) {
+            record.setBoardingLatitude(BigDecimal.valueOf(coord.latitude()));
+            record.setBoardingLongitude(BigDecimal.valueOf(coord.longitude()));
+        }
 
         try {
             record = boardingRecordRepository.save(record);

@@ -185,7 +185,7 @@ class BoardingIntegrationTest {
                 .header("Authorization", authHeader())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(
-                        new ValidateBoardingRequest(stopQrPayload, null))))
+                        new ValidateBoardingRequest(stopQrPayload, null, null, null, null))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.valid").value(true))
                 .andExpect(jsonPath("$.tripId").value(tripId))
@@ -200,7 +200,7 @@ class BoardingIntegrationTest {
                 .header("Authorization", authHeader())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(
-                        new ValidateBoardingRequest("INVALID-CODE.badsig", null))))
+                        new ValidateBoardingRequest("INVALID-CODE.badsig", null, null, null, null))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.valid").value(false))
                 .andExpect(jsonPath("$.message").value(BoardingService.MSG_QR_INVALID));
@@ -214,7 +214,7 @@ class BoardingIntegrationTest {
                 .header("Authorization", authHeader())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(
-                        new ValidateBoardingRequest(stopQrPayload, null))))
+                        new ValidateBoardingRequest(stopQrPayload, null, null, null, null))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.valid").value(false))
                 .andExpect(jsonPath("$.message").value(BoardingService.MSG_TRIP_NOT_FOUND));
@@ -232,7 +232,7 @@ class BoardingIntegrationTest {
                 .header("Authorization", authHeader())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(
-                        new ConfirmBoardingRequest(stopQrPayload, tripId, uniqueKey()))))
+                        new ConfirmBoardingRequest(stopQrPayload, tripId, uniqueKey(), null, null, null))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.boardingRecordId", notNullValue()))
                 .andExpect(jsonPath("$.tripId").value(tripId))
@@ -250,7 +250,7 @@ class BoardingIntegrationTest {
                 .header("Authorization", authHeader())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(
-                        new ConfirmBoardingRequest(stopQrPayload, tripId, uniqueKey()))))
+                        new ConfirmBoardingRequest(stopQrPayload, tripId, uniqueKey(), null, null, null))))
                 .andExpect(status().isOk());
 
         // Second attempt with a DIFFERENT key — same (trip, student) → conflict
@@ -258,7 +258,7 @@ class BoardingIntegrationTest {
                 .header("Authorization", authHeader())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(
-                        new ConfirmBoardingRequest(stopQrPayload, tripId, uniqueKey()))))
+                        new ConfirmBoardingRequest(stopQrPayload, tripId, uniqueKey(), null, null, null))))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("ALREADY_BOARDED"))
                 .andExpect(jsonPath("$.message").value(BoardingService.MSG_ALREADY_BOARDED));
@@ -269,7 +269,7 @@ class BoardingIntegrationTest {
     void confirm_sameIdempotencyKey_isIdempotent() throws Exception {
         startTrip();
         String key = uniqueKey();
-        var body = new ConfirmBoardingRequest(stopQrPayload, tripId, key);
+        var body = new ConfirmBoardingRequest(stopQrPayload, tripId, key, null, null, null);
 
         // First call — fresh insert
         mockMvc.perform(post("/api/boarding/confirm")
@@ -297,7 +297,7 @@ class BoardingIntegrationTest {
                 .header("Authorization", authHeader())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(
-                        new ConfirmBoardingRequest(stopQrPayload, tripId, uniqueKey()))))
+                        new ConfirmBoardingRequest(stopQrPayload, tripId, uniqueKey(), null, null, null))))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("TRIP_NOT_ACTIVE"))
                 .andExpect(jsonPath("$.message").value(BoardingService.MSG_TRIP_NOT_ACTIVE));
@@ -320,7 +320,7 @@ class BoardingIntegrationTest {
                 .header("Authorization", authHeader())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(
-                        new ConfirmBoardingRequest(orphanPayload, tripId, uniqueKey()))))
+                        new ConfirmBoardingRequest(orphanPayload, tripId, uniqueKey(), null, null, null))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("STOP_NOT_IN_ROUTE"))
                 .andExpect(jsonPath("$.message").value(BoardingService.MSG_STOP_NOT_IN_ROUTE));
@@ -340,7 +340,7 @@ class BoardingIntegrationTest {
                     .header("Authorization", authHeader())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(
-                            new ConfirmBoardingRequest(stopQrPayload, tripId, uniqueKey()))))
+                            new ConfirmBoardingRequest(stopQrPayload, tripId, uniqueKey(), null, null, null))))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.code").value("STUDENT_SUSPENDED"))
                     .andExpect(jsonPath("$.message").value(BoardingService.MSG_STUDENT_SUSPENDED));
@@ -359,7 +359,7 @@ class BoardingIntegrationTest {
                 .header("Authorization", authHeader())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(
-                        new ConfirmBoardingRequest("TAMPERED.badsignature", tripId, uniqueKey()))))
+                        new ConfirmBoardingRequest("TAMPERED.badsignature", tripId, uniqueKey(), null, null, null))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("QR_INVALID"));
     }
@@ -370,7 +370,7 @@ class BoardingIntegrationTest {
         mockMvc.perform(post("/api/boarding/confirm")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(
-                        new ConfirmBoardingRequest(stopQrPayload, tripId, uniqueKey()))))
+                        new ConfirmBoardingRequest(stopQrPayload, tripId, uniqueKey(), null, null, null))))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -387,7 +387,7 @@ class BoardingIntegrationTest {
                 .header("Authorization", authHeader())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(
-                        new ConfirmBoardingRequest(stopQrPayload, tripId, uniqueKey()))))
+                        new ConfirmBoardingRequest(stopQrPayload, tripId, uniqueKey(), null, null, null))))
                 .andExpect(status().isOk());
 
         // Verify history reflects the boarding

@@ -67,4 +67,12 @@ public class BoardingRecord extends BaseEntity {
      */
     @Column(name = "payment_status", nullable = false, length = 32)
     private String paymentStatus = "UNPAID";
+
+    /** Student's latitude at the time of boarding (null when GPS not provided). */
+    @Column(name = "boarding_latitude", precision = 10, scale = 7)
+    private java.math.BigDecimal boardingLatitude;
+
+    /** Student's longitude at the time of boarding (null when GPS not provided). */
+    @Column(name = "boarding_longitude", precision = 10, scale = 7)
+    private java.math.BigDecimal boardingLongitude;
 }

@@ -61,6 +61,7 @@ public class BoardingService {
     private final TripRepository             tripRepository;
     private final BoardingRecordRepository   boardingRecordRepository;
     private final BoardingWriter             boardingWriter;
+    private final GpsVerificationService     gpsVerificationService;
 
     // ── Validate (read-only, nothing is saved) ────────────────────────────────
 
@@ -108,6 +109,14 @@ public class BoardingService {
                 .map(Fare::getAmount)
                 .orElse(null);
 
+        // 4. Optional GPS proximity check (soft — returns message, not exception)
+        GpsCoordinate coord = buildCoord(req.latitude(), req.longitude(), req.accuracyMeters());
+        String gpsMessage = gpsVerificationService.softVerify(coord, stop);
+        if (gpsMessage != null) {
+            return new ValidateBoardingResponse(false, gpsMessage,
+                    stop.getName(), trip.getRoute().getName(), trip.getId(), fare);
+        }
+
         return new ValidateBoardingResponse(
                 true, "Boarding validated successfully.",
                 stop.getName(), trip.getRoute().getName(),
@@ -154,6 +163,10 @@ public class BoardingService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "QR_INVALID", MSG_QR_INVALID);
         }
 
+        // 4b. GPS proximity check (hard — throws ApiException if outside radius)
+        GpsCoordinate coord = buildCoord(req.latitude(), req.longitude(), req.accuracyMeters());
+        gpsVerificationService.verify(coord, stop);
+
         // 5. Trip must exist and be IN_PROGRESS
         Trip trip = tripRepository.findById(req.tripId())
                 .orElseThrow(() -> new EntityNotFoundException("Trip " + req.tripId() + " not found."));
@@ -181,7 +194,8 @@ public class BoardingService {
                 .orElse(null);
 
         // 9. Persist boarding record via the writer (owns its own @Transactional)
-        return boardingWriter.save(student, trip, stop, fareAmount, req.idempotencyKey());
+        return boardingWriter.save(student, trip, stop, fareAmount,
+                req.idempotencyKey(), coord);
     }
 
     // ── History (read-only) ───────────────────────────────────────────────────
@@ -230,5 +244,9 @@ public class BoardingService {
 
     private static ValidateBoardingResponse invalid(String message) {
         return new ValidateBoardingResponse(false, message, null, null, null, null);
+    }
+
+    private static GpsCoordinate buildCoord(Double lat, Double lon, Double accuracy) {
+        return new GpsCoordinate(lat, lon, accuracy);
     }
 }
