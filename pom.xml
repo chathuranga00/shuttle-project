@@ -22,6 +22,7 @@
         <springdoc.version>2.8.13</springdoc.version>
         <jjwt.version>0.12.6</jjwt.version>
         <bucket4j.version>8.10.1</bucket4j.version>
+        <zxing.version>3.5.3</zxing.version>
     </properties>
 
     <dependencies>
@@ -94,6 +95,18 @@
             <groupId>com.bucket4j</groupId>
             <artifactId>bucket4j-core</artifactId>
             <version>${bucket4j.version}</version>
+        </dependency>
+
+        <!-- ZXing — QR/barcode PNG generation -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>${zxing.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>${zxing.version}</version>
         </dependency>
 
         <!-- Spring Security Test -->

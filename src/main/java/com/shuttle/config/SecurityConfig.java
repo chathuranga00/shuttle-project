@@ -77,6 +77,9 @@ public class SecurityConfig {
                         // Card verification — driver or admin only
                         .requestMatchers(HttpMethod.POST, "/api/cards/verify").hasAnyRole("DRIVER", "ADMIN")
 
+                        // Public route information — any authenticated user
+                        .requestMatchers(HttpMethod.GET, "/api/routes/**").authenticated()
+
                         // Everything else requires authentication
                         .anyRequest().authenticated()
                 )
