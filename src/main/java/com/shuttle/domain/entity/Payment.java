@@ -47,6 +47,14 @@ public class Payment extends BaseEntity {
     @Column(length = 255)
     private String description;
 
+    /** Unique ID assigned by the payment gateway — used for idempotent webhook handling. */
+    @Column(name = "gateway_transaction_id", unique = true, length = 128)
+    private String gatewayTransactionId;
+
+    /** Redirect URL returned by the gateway at checkout creation. */
+    @Column(name = "checkout_url", length = 500)
+    private String checkoutUrl;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trip_id")
     private Trip trip;

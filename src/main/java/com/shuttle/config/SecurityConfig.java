@@ -80,6 +80,15 @@ public class SecurityConfig {
                         // Monthly pass — students only
                         .requestMatchers("/api/monthly-pass/**").hasRole("STUDENT")
 
+                        // Wallet — students only
+                        .requestMatchers("/api/wallet/**").hasRole("STUDENT")
+
+                        // Payment webhook — public (gateway calls this; signature verified inside)
+                        .requestMatchers("/api/payment/webhook").permitAll()
+                        .requestMatchers("/api/payment/mock-callback").permitAll()
+                        // Payment status poll + history — authenticated
+                        .requestMatchers("/api/payment/**").authenticated()
+
                         // Card verification — driver or admin only
                         .requestMatchers(HttpMethod.POST, "/api/cards/verify").hasAnyRole("DRIVER", "ADMIN")
 

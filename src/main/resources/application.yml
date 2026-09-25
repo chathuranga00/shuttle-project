@@ -53,6 +53,11 @@ app:
   pass:
     # Set to true in dev to treat a purchase as immediately ACTIVE (no payment gateway).
     mock-paid-enabled: ${PASS_MOCK_PAID:true}
+  payment:
+    # Gateway implementation: "mock" (default) or "payhere"
+    gateway: ${PAYMENT_GATEWAY:mock}
+    # Base URL used when constructing webhook callback URLs
+    base-url: ${APP_BASE_URL:http://localhost:8080}
 
 ---
 spring:
@@ -74,3 +79,6 @@ app:
     refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
   pass:
     mock-paid-enabled: false   # require real payment in prod
+  payment:
+    gateway: payhere
+    base-url: ${APP_BASE_URL}
