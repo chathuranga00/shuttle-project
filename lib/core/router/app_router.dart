@@ -10,7 +10,13 @@ import '../../features/boarding/presentation/screens/boarding_confirm_screen.dar
 import '../../features/boarding/presentation/screens/boarding_result_screen.dart';
 import '../../features/boarding/presentation/screens/qr_scanner_screen.dart';
 import '../../features/boarding/presentation/screens/travel_history_screen.dart';
+import '../../features/driver/presentation/screens/assigned_bus_screen.dart';
+import '../../features/driver/presentation/screens/assigned_route_screen.dart';
+import '../../features/driver/presentation/screens/current_trip_screen.dart';
 import '../../features/driver/presentation/screens/driver_dashboard_screen.dart';
+import '../../features/driver/presentation/screens/driver_trip_history_screen.dart';
+import '../../features/driver/presentation/screens/emergency_report_screen.dart';
+import '../../features/driver/presentation/screens/scan_student_card_screen.dart';
 import '../../features/pass/presentation/screens/monthly_pass_screen.dart';
 import '../../features/routes/presentation/screens/bus_routes_screen.dart';
 import '../../features/routes/presentation/screens/bus_stops_screen.dart';
@@ -45,6 +51,12 @@ class AppRoutes {
   static const paymentResult     = '/wallet/pay/result';
   static const paymentHistory    = '/wallet/payments';
   static const driverDashboard   = '/driver';
+  static const driverCurrentTrip = '/driver/trip';
+  static const driverScanCard    = '/driver/scan-card';
+  static const driverAssignedBus = '/driver/bus';
+  static const driverAssignedRoute = '/driver/route';
+  static const driverEmergency   = '/driver/emergency';
+  static const driverTripHistory = '/driver/history';
 }
 
 // ── Router provider ───────────────────────────────────────────────────────────
@@ -169,6 +181,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // ── Driver ────────────────────────────────────────────────────────
       GoRoute(path: AppRoutes.driverDashboard,
           builder: (_, __) => const DriverDashboardScreen()),
+      GoRoute(path: AppRoutes.driverCurrentTrip,
+          builder: (_, __) => const CurrentTripScreen()),
+      GoRoute(path: AppRoutes.driverScanCard,
+          builder: (_, __) => const ScanStudentCardScreen()),
+      GoRoute(path: AppRoutes.driverAssignedBus,
+          builder: (_, __) => const AssignedBusScreen()),
+      GoRoute(path: AppRoutes.driverAssignedRoute,
+          builder: (_, __) => const AssignedRouteScreen()),
+      GoRoute(path: AppRoutes.driverEmergency,
+          builder: (_, __) => const EmergencyReportScreen()),
+      GoRoute(path: AppRoutes.driverTripHistory,
+          builder: (_, __) => const DriverTripHistoryScreen()),
     ],
   );
 });
