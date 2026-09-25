@@ -24,6 +24,13 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
     @Query("SELECT t FROM Trip t WHERE t.bus.id = :busId AND t.status = 'IN_PROGRESS'")
     List<Trip> findActiveTripsByBus(@Param("busId") Long busId);
 
+    List<Trip> findByDriverIdAndStatus(Long driverId, TripStatus status);
+
+    List<Trip> findByDriverIdOrderByScheduledStartDesc(Long driverId);
+
+    List<Trip> findByDriverIdAndStatusAndScheduledStartBetweenOrderByScheduledStartAsc(
+            Long driverId, TripStatus status, java.time.Instant start, java.time.Instant end);
+
     /**
      * All IN_PROGRESS trips whose route contains the given stop.
      * Used by the boarding flow to find which trip a student is boarding.

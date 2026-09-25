@@ -67,6 +67,7 @@ public class SecurityConfig {
 
                         // Driver only
                         .requestMatchers("/api/driver/**").hasRole("DRIVER")
+                        .requestMatchers(HttpMethod.GET, "/api/trips/current").hasRole("DRIVER")
                         .requestMatchers(HttpMethod.POST, "/api/trips/*/start").hasRole("DRIVER")
                         .requestMatchers(HttpMethod.POST, "/api/trips/*/end").hasRole("DRIVER")
                         .requestMatchers(HttpMethod.POST, "/api/trips/*/board").hasRole("DRIVER")
@@ -80,14 +81,14 @@ public class SecurityConfig {
                         // Monthly pass — students only
                         .requestMatchers("/api/monthly-pass/**").hasRole("STUDENT")
 
-                        // Wallet — students only
+                        // Wallet — students only (drivers must NOT access payment processing)
                         .requestMatchers("/api/wallet/**").hasRole("STUDENT")
 
                         // Payment webhook — public (gateway calls this; signature verified inside)
                         .requestMatchers("/api/payment/webhook").permitAll()
                         .requestMatchers("/api/payment/mock-callback").permitAll()
-                        // Payment status poll + history — authenticated
-                        .requestMatchers("/api/payment/**").authenticated()
+                        // Payment status poll + history — students or admin (drivers must NOT access payment processing)
+                        .requestMatchers("/api/payment/**").hasAnyRole("STUDENT", "ADMIN")
 
                         // Card verification — driver or admin only
                         .requestMatchers(HttpMethod.POST, "/api/cards/verify").hasAnyRole("DRIVER", "ADMIN")
