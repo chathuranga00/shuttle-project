@@ -93,22 +93,35 @@ class _EmergencyReportScreenState extends ConsumerState<EmergencyReportScreen> {
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
-          icon: Icon(Icons.check_circle_rounded,
-              color: Colors.green.shade700, size: 56),
-          title: const Text('Incident Reported'),
+          icon: Icon(
+            report.status == 'QUEUED_OFFLINE'
+                ? Icons.cloud_queue_rounded
+                : Icons.check_circle_rounded,
+            color: report.status == 'QUEUED_OFFLINE'
+                ? Colors.amber.shade800
+                : Colors.green.shade700,
+            size: 56,
+          ),
+          title: Text(report.status == 'QUEUED_OFFLINE'
+              ? 'Incident Queued Offline'
+              : 'Incident Reported'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Your emergency report (#${report.id}) has been recorded.',
+                report.status == 'QUEUED_OFFLINE'
+                    ? 'Your emergency report has been saved securely offline.'
+                    : 'Your emergency report (#${report.id}) has been recorded.',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
-              const Text(
-                'Campus Dispatch and Shuttle Admins have been notified immediately.\n\n'
-                'Please stay with the vehicle and follow university transit safety procedures.',
-                style: TextStyle(fontSize: 14, height: 1.4),
+              Text(
+                report.status == 'QUEUED_OFFLINE'
+                    ? 'It will be automatically synced with Campus Dispatch as soon as your device reconnects to the network.'
+                    : 'Campus Dispatch and Shuttle Admins have been notified immediately.\n\n'
+                        'Please stay with the vehicle and follow university transit safety procedures.',
+                style: const TextStyle(fontSize: 14, height: 1.4),
               ),
             ],
           ),

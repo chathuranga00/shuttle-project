@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/providers/connectivity_provider.dart';
 import '../../../../core/router/app_router.dart';
 import '../../data/wallet_repository.dart';
 
@@ -30,6 +31,17 @@ class _AddMoneyScreenState extends ConsumerState<AddMoneyScreen> {
   }
 
   Future<void> _proceed() async {
+    final isOnline = ref.read(isOnlineProvider);
+    if (!isOnline) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text(
+          'Live internet connection required for wallet top-up. Offline payments are disabled.',
+        ),
+        backgroundColor: Colors.red.shade700,
+      ));
+      return;
+    }
+
     final amount = _amount;
     if (amount == null || amount < 50) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

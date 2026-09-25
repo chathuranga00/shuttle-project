@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import '../../../../core/providers/connectivity_provider.dart';
 import '../../data/models/pass_status_response.dart';
 import '../../data/pass_repository.dart';
 import '../providers/pass_provider.dart';
@@ -18,6 +18,15 @@ class _MonthlyPassScreenState extends ConsumerState<MonthlyPassScreen> {
   bool _isPurchasing = false;
 
   Future<void> _purchase() async {
+    final isOnline = ref.read(isOnlineProvider);
+    if (!isOnline) {
+      _showSnack(
+        'Live connection required to purchase monthly pass. Offline purchase is disabled.',
+        success: false,
+      );
+      return;
+    }
+
     setState(() => _isPurchasing = true);
     try {
       await ref.read(passRepositoryProvider).purchase();

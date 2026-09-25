@@ -8,6 +8,7 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/connectivity_banner.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../boarding/presentation/providers/boarding_provider.dart';
+import '../../../notification/presentation/widgets/notification_bell_button.dart';
 import '../../../pass/presentation/providers/pass_provider.dart';
 import '../../../wallet/presentation/providers/wallet_provider.dart';
 import '../providers/student_provider.dart';
@@ -33,6 +34,7 @@ class StudentDashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('My Shuttle'),
         actions: [
+          const NotificationBellButton(),
           IconButton(
             icon: const Icon(Icons.person_rounded),
             tooltip: 'My Profile',

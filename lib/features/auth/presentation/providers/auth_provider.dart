@@ -5,6 +5,8 @@ import '../../data/auth_repository.dart';
 import '../../data/models/login_request.dart';
 import '../../data/models/register_request.dart';
 
+import '../../../notification/services/push_notification_service.dart';
+
 // ── Auth state ────────────────────────────────────────────────────────────────
 enum AuthStatus { unknown, authenticated, unauthenticated }
 
@@ -38,10 +40,12 @@ class AuthState {
 
 // ── Notifier ──────────────────────────────────────────────────────────────────
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier(this._repository, this._storage) : super(const AuthState());
+  AuthNotifier(this._repository, this._storage, [this._pushService])
+      : super(const AuthState());
 
   final AuthRepository _repository;
   final SecureStorageService _storage;
+  final PushNotificationService? _pushService;
 
   /// Called on app start from the Splash screen.
   Future<void> checkAuthStatus() async {
@@ -53,6 +57,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         role: role,
         isLoading: false,
       );
+      _pushService?.initialize();
     } else {
       state = state.copyWith(
         status: AuthStatus.unauthenticated,
@@ -71,6 +76,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         role: role,
         isLoading: false,
       );
+      _pushService?.initialize();
     } on ApiException catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -110,6 +116,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         role: role,
         isLoading: false,
       );
+      _pushService?.initialize();
     } on ApiException catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -137,5 +144,6 @@ final authProvider =
   return AuthNotifier(
     ref.watch(authRepositoryProvider),
     ref.watch(secureStorageServiceProvider),
+    ref.watch(pushNotificationServiceProvider),
   );
 });

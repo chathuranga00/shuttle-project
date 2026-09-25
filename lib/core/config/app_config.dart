@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Environment-aware configuration.
 /// Switch [_env] or pass --dart-define=ENV=prod at build time.
 enum Env { dev, prod }
@@ -8,8 +10,10 @@ class AppConfig {
   static const Env _env = Env.dev;
 
   /// Android emulator reaches host machine via 10.0.2.2.
+  /// Web / Chrome / Desktop reaches host machine via localhost.
   /// For a physical device, change to your machine's LAN IP, e.g. 192.168.x.x.
-  static const String _devBaseUrl = 'http://10.0.2.2:8080';
+  static String get _devBaseUrl =>
+      kIsWeb ? 'http://localhost:8080' : 'http://10.0.2.2:8080';
   static const String _prodBaseUrl = 'https://api.shuttle.university.lk';
 
   static String get baseUrl =>

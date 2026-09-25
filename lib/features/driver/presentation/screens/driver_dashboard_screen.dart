@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/widgets/connectivity_banner.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../notification/presentation/widgets/notification_bell_button.dart';
 import '../../data/models/driver_trip.dart';
 import '../providers/driver_providers.dart';
 
@@ -133,6 +135,7 @@ class _DriverDashboardScreenState
       appBar: AppBar(
         title: const Text('Driver Portal'),
         actions: [
+          const NotificationBellButton(),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'Refresh',
@@ -148,8 +151,9 @@ class _DriverDashboardScreenState
           ),
         ],
       ),
-      body: SafeArea(
-        child: RefreshIndicator(
+      body: ConnectivityBanner(
+        child: SafeArea(
+          child: RefreshIndicator(
           onRefresh: () async {
             ref.invalidate(currentTripProvider);
             ref.invalidate(driverAssignmentProvider);
@@ -349,7 +353,7 @@ class _DriverDashboardScreenState
           ),
         ),
       ),
-    );
+    ));
   }
 }
 

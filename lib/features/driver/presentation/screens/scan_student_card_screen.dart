@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../../../../core/providers/connectivity_provider.dart';
 import '../../data/models/card_verification_result.dart';
 import '../providers/driver_providers.dart';
 
@@ -46,6 +47,16 @@ class _ScanStudentCardScreenState extends ConsumerState<ScanStudentCardScreen> {
   }
 
   Future<void> _verifyToken(String token) async {
+    final isOnline = ref.read(isOnlineProvider);
+    if (!isOnline) {
+      setState(() {
+        _isVerifying = false;
+        _verificationError =
+            'Live server connection required to verify student cards. Offline verification is disabled.';
+      });
+      return;
+    }
+
     setState(() {
       _isVerifying = true;
       _verificationError = null;

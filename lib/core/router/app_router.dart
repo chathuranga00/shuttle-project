@@ -27,6 +27,7 @@ import '../../features/wallet/presentation/screens/add_money_screen.dart';
 import '../../features/wallet/presentation/screens/payment_history_screen.dart';
 import '../../features/wallet/presentation/screens/payment_result_screen.dart';
 import '../../features/wallet/presentation/screens/payment_webview_screen.dart';
+import '../../features/notification/presentation/screens/notifications_screen.dart';
 import '../../features/wallet/presentation/screens/wallet_screen.dart';
 
 // ── Route name constants ──────────────────────────────────────────────────────
@@ -38,6 +39,7 @@ class AppRoutes {
   static const studentDashboard  = '/student';
   static const busCard           = '/student/card';
   static const profile           = '/student/profile';
+  static const notifications     = '/notifications';
   static const busRoutes         = '/routes';
   static const busStops          = '/routes/stops';
   static const qrScanner         = '/boarding/scan';
@@ -104,6 +106,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           builder: (_, __) => const VirtualBusCardScreen()),
       GoRoute(path: AppRoutes.profile,
           builder: (_, __) => const ProfileScreen()),
+      GoRoute(path: AppRoutes.notifications,
+          builder: (_, __) => const NotificationsScreen()),
 
       // ── Routes / Stops ───────────────────────────────────────────────
       GoRoute(path: AppRoutes.busRoutes,
