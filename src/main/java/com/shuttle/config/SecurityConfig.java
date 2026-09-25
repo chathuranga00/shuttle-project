@@ -37,6 +37,12 @@ public class SecurityConfig {
     private final RateLimitFilter rateLimitFilter;
     private final AuthEntryPoint authEntryPoint;
 
+    @org.springframework.beans.factory.annotation.Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000}")
+    private List<String> allowedOrigins;
+
+    @org.springframework.beans.factory.annotation.Value("${spring.profiles.active:dev}")
+    private String activeProfile;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -58,11 +64,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
         configuration.setExposedHeaders(List.of("Content-Disposition", "X-QR-Payload"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -77,52 +84,69 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(authEntryPoint))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // Public endpoints
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.deny())
+                        .contentTypeOptions(Customizer.withDefaults())
+                        .xssProtection(Customizer.withDefaults())
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; frame-ancestors 'none'; object-src 'none';"))
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000)
+                                .preload(true)
+                        )
+                );
 
-                        // Admin only
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+        if ("prod".equalsIgnoreCase(activeProfile)) {
+            http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
+        }
 
-                        // Driver only
-                        .requestMatchers("/api/driver/**").hasRole("DRIVER")
-                        .requestMatchers(HttpMethod.GET, "/api/trips/current").hasRole("DRIVER")
-                        .requestMatchers(HttpMethod.POST, "/api/trips/*/start").hasRole("DRIVER")
-                        .requestMatchers(HttpMethod.POST, "/api/trips/*/end").hasRole("DRIVER")
-                        .requestMatchers(HttpMethod.POST, "/api/trips/*/board").hasRole("DRIVER")
+        http.authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                // Public endpoints
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
-                        // Student endpoints
-                        .requestMatchers("/api/students/**").hasRole("STUDENT")
+                // Admin only
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // Boarding — students only
-                        .requestMatchers("/api/boarding/**").hasRole("STUDENT")
+                // Driver only
+                .requestMatchers("/api/driver/**").hasRole("DRIVER")
+                .requestMatchers("/api/trips/**").hasRole("DRIVER")
 
-                        // Monthly pass — students only
-                        .requestMatchers("/api/monthly-pass/**").hasRole("STUDENT")
+                // Student endpoints
+                .requestMatchers("/api/students/**").hasRole("STUDENT")
 
-                        // Wallet — students only (drivers must NOT access payment processing)
-                        .requestMatchers("/api/wallet/**").hasRole("STUDENT")
+                // Boarding — students only
+                .requestMatchers("/api/boarding/**").hasRole("STUDENT")
 
-                        // Payment webhook — public (gateway calls this; signature verified inside)
-                        .requestMatchers("/api/payment/webhook").permitAll()
-                        .requestMatchers("/api/payment/mock-callback").permitAll()
-                        // Payment status poll + history — students or admin (drivers must NOT access payment processing)
-                        .requestMatchers("/api/payment/**").hasAnyRole("STUDENT", "ADMIN")
+                // Monthly pass — students only
+                .requestMatchers("/api/monthly-pass/**").hasRole("STUDENT")
 
-                        // Card verification — driver or admin only
-                        .requestMatchers(HttpMethod.POST, "/api/cards/verify").hasAnyRole("DRIVER", "ADMIN")
+                // Wallet — students only (drivers must NOT access payment processing)
+                .requestMatchers("/api/wallet/**").hasRole("STUDENT")
 
-                        // Public route information — any authenticated user
-                        .requestMatchers(HttpMethod.GET, "/api/routes/**").authenticated()
+                // Payment webhook — public (gateway calls this; signature verified inside)
+                .requestMatchers("/api/payment/webhook").permitAll()
+                .requestMatchers("/api/payment/mock-callback").permitAll()
+                // Payment status poll + history — students or admin (drivers must NOT access payment processing)
+                .requestMatchers("/api/payment/**").hasAnyRole("STUDENT", "ADMIN")
 
-                        // Everything else requires authentication
-                        .anyRequest().authenticated()
-                )
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                // Card verification — driver or admin only
+                .requestMatchers(HttpMethod.POST, "/api/cards/verify").hasAnyRole("DRIVER", "ADMIN")
+
+                // Public route information — any authenticated user
+                .requestMatchers(HttpMethod.GET, "/api/routes/**").authenticated()
+
+                // Notifications and devices — any authenticated user
+                .requestMatchers("/api/notifications/**").authenticated()
+                .requestMatchers("/api/devices/**").authenticated()
+
+                // Everything else requires authentication
+                .anyRequest().authenticated()
+        )
+        .authenticationProvider(authenticationProvider())
+        .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

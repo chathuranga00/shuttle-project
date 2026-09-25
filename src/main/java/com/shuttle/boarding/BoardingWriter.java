@@ -29,6 +29,7 @@ public class BoardingWriter {
 
     private final BoardingRecordRepository  boardingRecordRepository;
     private final WalletService             walletService;
+    private final com.shuttle.domain.repository.WalletRepository walletRepository;
     private final WalletTransactionRepository walletTxRepository;
     private final NotificationService       notificationService;
 
@@ -36,6 +37,14 @@ public class BoardingWriter {
     public BoardingConfirmResponse save(Student student, Trip trip,
             BusStop stop, BigDecimal fareAmount, String idempotencyKey,
             GpsCoordinate coord, MonthlyPass activePass) {
+
+        // ── Concurrency guard: lock student's wallet to serialize all boarding operations ──
+        walletRepository.findByStudentIdWithLock(student.getId());
+
+        // Under serialized lock, re-verify student hasn't already boarded
+        if (boardingRecordRepository.existsByTripIdAndStudentId(trip.getId(), student.getId())) {
+            throw new ApiException(HttpStatus.CONFLICT, "ALREADY_BOARDED", BoardingService.MSG_ALREADY_BOARDED);
+        }
 
         // ── Build the record (not yet persisted) ──────────────────────────────
         BoardingRecord record = new BoardingRecord();

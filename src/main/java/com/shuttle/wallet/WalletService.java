@@ -138,7 +138,7 @@ public class WalletService {
      */
     @Transactional
     public void creditWallet(Payment payment) {
-        Wallet wallet = walletRepository.findByStudentId(payment.getStudent().getId())
+        Wallet wallet = walletRepository.findByStudentIdWithLock(payment.getStudent().getId())
                 .orElseThrow(() -> new EntityNotFoundException("Wallet not found."));
 
         BigDecimal newBalance = wallet.getBalance().add(payment.getAmount());

@@ -95,14 +95,26 @@ public class PaymentWebhookService {
     /**
      * Server-side status poll — called by the Flutter app after returning from checkout.
      * Returns the current payment status WITHOUT changing any state.
-     * The app must not act on a SUCCESS response here alone; it should rely on the
-     * webhook having already fired.
+     * Guards against IDOR: students can only check their own payments.
      */
     @Transactional(readOnly = true)
-    public PaymentStatusResponse pollPaymentStatus(Long paymentId) {
+    public PaymentStatusResponse pollPaymentStatus(Long paymentId, org.springframework.security.core.Authentication auth) {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Payment " + paymentId + " not found."));
+
+        if (auth != null) {
+            boolean isAdmin = auth.getAuthorities().stream()
+                    .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+            if (!isAdmin) {
+                com.shuttle.security.UserPrincipal principal = (com.shuttle.security.UserPrincipal) auth.getPrincipal();
+                if (payment.getStudent() == null || payment.getStudent().getUser() == null
+                        || !payment.getStudent().getUser().getId().equals(principal.getId())) {
+                    throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN",
+                            "Access denied: cannot view another user's payment.");
+                }
+            }
+        }
 
         // Optionally cross-check with the gateway (used when webhook hasn't fired yet)
         if (payment.getStatus() == PaymentStatus.PENDING) {

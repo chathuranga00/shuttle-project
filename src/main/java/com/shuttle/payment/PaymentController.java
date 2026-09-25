@@ -59,8 +59,8 @@ public class PaymentController {
     @GetMapping("/status/{paymentId}")
     @Operation(summary = "Poll payment status (authenticated student)")
     @SecurityRequirement(name = "bearerAuth")
-    public PaymentStatusResponse getStatus(@PathVariable Long paymentId) {
-        return webhookService.pollPaymentStatus(paymentId);
+    public PaymentStatusResponse getStatus(@PathVariable Long paymentId, Authentication auth) {
+        return webhookService.pollPaymentStatus(paymentId, auth);
     }
 
     /** Payment history for the authenticated student. */

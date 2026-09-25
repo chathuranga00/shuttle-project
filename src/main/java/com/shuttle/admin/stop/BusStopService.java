@@ -16,6 +16,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Base64;
 import java.util.EnumMap;
 import java.util.List;
@@ -130,7 +131,7 @@ public class BusStopService {
         String stopCode  = parts[0];
         String givenMac  = parts[1];
         String expected  = computeHmac(stopCode);
-        if (!expected.equals(givenMac)) {
+        if (!MessageDigest.isEqual(expected.getBytes(StandardCharsets.UTF_8), givenMac.getBytes(StandardCharsets.UTF_8))) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "QR_SIGNATURE_INVALID",
                     "QR code signature is invalid.");
         }
