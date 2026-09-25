@@ -165,7 +165,7 @@ class _PassBody extends StatelessWidget {
 
           // ── Buy / active banner ──────────────────────────────────────
           if (pass.isActive && pass.coveringToday)
-            _ActivePassBanner()
+            const _ActivePassBanner()
           else
             ElevatedButton.icon(
               onPressed: isPurchasing ? null : onPurchase,

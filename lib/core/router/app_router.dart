@@ -17,6 +17,11 @@ import '../../features/routes/presentation/screens/bus_stops_screen.dart';
 import '../../features/student/presentation/screens/profile_screen.dart';
 import '../../features/student/presentation/screens/student_dashboard_screen.dart';
 import '../../features/student/presentation/screens/virtual_bus_card_screen.dart';
+import '../../features/wallet/presentation/screens/add_money_screen.dart';
+import '../../features/wallet/presentation/screens/payment_history_screen.dart';
+import '../../features/wallet/presentation/screens/payment_result_screen.dart';
+import '../../features/wallet/presentation/screens/payment_webview_screen.dart';
+import '../../features/wallet/presentation/screens/wallet_screen.dart';
 
 // ── Route name constants ──────────────────────────────────────────────────────
 class AppRoutes {
@@ -34,6 +39,11 @@ class AppRoutes {
   static const boardingResult    = '/boarding/result';
   static const travelHistory     = '/boarding/history';
   static const monthlyPass       = '/pass';
+  static const wallet            = '/wallet';
+  static const addMoney          = '/wallet/add';
+  static const paymentWebView    = '/wallet/pay';
+  static const paymentResult     = '/wallet/pay/result';
+  static const paymentHistory    = '/wallet/payments';
   static const driverDashboard   = '/driver';
 }
 
@@ -126,6 +136,35 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       GoRoute(path: AppRoutes.monthlyPass,
           builder: (_, __) => const MonthlyPassScreen()),
+
+      // ── Wallet / Payments ─────────────────────────────────────────────
+      GoRoute(path: AppRoutes.wallet,
+          builder: (_, __) => const WalletScreen()),
+      GoRoute(path: AppRoutes.addMoney,
+          builder: (_, __) => const AddMoneyScreen()),
+      GoRoute(
+        path: AppRoutes.paymentWebView,
+        builder: (context, state) {
+          final e = state.extra as Map<String, dynamic>;
+          return PaymentWebViewScreen(
+            paymentId:   e['paymentId']   as int,
+            checkoutUrl: e['checkoutUrl'] as String,
+            amount:      e['amount']      as double,
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.paymentResult,
+        builder: (context, state) {
+          final e = state.extra as Map<String, dynamic>;
+          return PaymentResultScreen(
+            success: e['success'] as bool,
+            amount:  e['amount']  as double,
+          );
+        },
+      ),
+      GoRoute(path: AppRoutes.paymentHistory,
+          builder: (_, __) => const PaymentHistoryScreen()),
 
       // ── Driver ────────────────────────────────────────────────────────
       GoRoute(path: AppRoutes.driverDashboard,

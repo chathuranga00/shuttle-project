@@ -44,6 +44,9 @@ dependencies:
   # GPS location
   geolocator: ^13.0.2
 
+  # WebView for payment checkout
+  webview_flutter: ^4.10.0
+
   # UI helpers
   cupertino_icons: ^1.0.8
 

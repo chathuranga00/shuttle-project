@@ -9,6 +9,7 @@ import '../../../../core/widgets/connectivity_banner.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../boarding/presentation/providers/boarding_provider.dart';
 import '../../../pass/presentation/providers/pass_provider.dart';
+import '../../../wallet/presentation/providers/wallet_provider.dart';
 import '../providers/student_provider.dart';
 
 class StudentDashboardScreen extends ConsumerWidget {
@@ -50,6 +51,7 @@ class StudentDashboardScreen extends ConsumerWidget {
           ref.invalidate(studentCardProvider);
           ref.invalidate(boardingHistoryProvider);
           ref.invalidate(passStatusProvider);
+          ref.invalidate(walletProvider);
         },
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -94,7 +96,9 @@ class StudentDashboardScreen extends ConsumerWidget {
                     loading: () => const _InfoRowSkeleton(),
                     error: (_, __) => const SizedBox.shrink(),
                     data: (card) {
-                      final passAsync = ref.watch(passStatusProvider);
+                      final passAsync   = ref.watch(passStatusProvider);
+                      final walletAsync = ref.watch(walletProvider);
+
                       final passLabel = passAsync.maybeWhen(
                         data: (p) => p.coveringToday ? 'ACTIVE' : p.status,
                         orElse: () => card.monthlyPassStatus,
@@ -102,14 +106,24 @@ class StudentDashboardScreen extends ConsumerWidget {
                       final passColor = passLabel == 'ACTIVE'
                           ? Colors.green.shade700
                           : Colors.grey;
+
+                      // Real wallet balance from dedicated endpoint
+                      final balanceLabel = walletAsync.maybeWhen(
+                        data: (w) => 'LKR ${w.balance.toStringAsFixed(2)}',
+                        orElse: () => 'LKR ${card.wallet.balance}',
+                      );
+
                       return Row(
                         children: [
                           Expanded(
-                            child: _InfoTile(
-                              icon: Icons.account_balance_wallet_rounded,
-                              label: 'Wallet Balance',
-                              value: 'LKR ${card.wallet.balance}',
-                              iconColor: const Color(0xFF1A3A6B),
+                            child: GestureDetector(
+                              onTap: () => context.push(AppRoutes.wallet),
+                              child: _InfoTile(
+                                icon: Icons.account_balance_wallet_rounded,
+                                label: 'Wallet Balance',
+                                value: balanceLabel,
+                                iconColor: const Color(0xFF1A3A6B),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -141,6 +155,12 @@ class StudentDashboardScreen extends ConsumerWidget {
                     label: 'My Bus Card',
                     subtitle: 'View card, QR code & wallet balance',
                     onTap: () => context.push(AppRoutes.busCard),
+                  ),
+                  _ActionTile(
+                    icon: Icons.account_balance_wallet_rounded,
+                    label: 'My Wallet',
+                    subtitle: 'Balance, top-up & transactions',
+                    onTap: () => context.push(AppRoutes.wallet),
                   ),
                   _ActionTile(
                     icon: Icons.route_rounded,
