@@ -32,9 +32,9 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:shuttle_db}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3308}/${DB_NAME:shuttle_db}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:root}
+    password: ${DB_PASSWORD:Csempire076@}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     show-sql: true
@@ -58,6 +58,10 @@ app:
     gateway: ${PAYMENT_GATEWAY:mock}
     # Base URL used when constructing webhook callback URLs
     base-url: ${APP_BASE_URL:http://localhost:8080}
+  notification:
+    low-balance-threshold: ${WALLET_LOW_BALANCE_THRESHOLD:200.00}
+    firebase-credentials: ${FIREBASE_CREDENTIALS:}
+    firebase-config-path: ${FIREBASE_CONFIG_PATH:}
 
 ---
 spring:

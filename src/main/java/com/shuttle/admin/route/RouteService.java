@@ -19,6 +19,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.shuttle.notification.NotificationService;
+import com.shuttle.notification.dto.AnnouncementRequest;
+
 @Service
 @RequiredArgsConstructor
 public class RouteService {
@@ -26,6 +29,7 @@ public class RouteService {
     private final RouteRepository     routeRepository;
     private final RouteStopRepository routeStopRepository;
     private final BusStopRepository   busStopRepository;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public List<RouteResponse> listAll() {
@@ -65,7 +69,17 @@ public class RouteService {
         applyBasic(route, req);
         routeStopRepository.deleteByRouteId(id);
         List<RouteStopDetail> details = persistStops(route, req.stops());
-        return toResponse(routeRepository.save(route), details);
+        Route saved = routeRepository.save(route);
+        try {
+            notificationService.sendAnnouncement(new AnnouncementRequest(
+                    "Route Updated",
+                    "Route " + saved.getName() + " (" + saved.getCode() + ") details have been updated.",
+                    "ALL"
+            ));
+        } catch (Exception e) {
+            // Non-critical if no recipients
+        }
+        return toResponse(saved, details);
     }
 
     @Transactional

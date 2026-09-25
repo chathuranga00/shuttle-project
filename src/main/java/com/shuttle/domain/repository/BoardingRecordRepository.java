@@ -17,6 +17,12 @@ public interface BoardingRecordRepository extends JpaRepository<BoardingRecord, 
 
     Optional<BoardingRecord> findByIdempotencyKey(String idempotencyKey);
 
+    long countByBoardedAtBetween(java.time.Instant start, java.time.Instant end);
+
+    List<BoardingRecord> findByBoardedAtBetween(java.time.Instant start, java.time.Instant end);
+
+    List<BoardingRecord> findByBoardedAtBetweenOrderByBoardedAtDesc(java.time.Instant start, java.time.Instant end);
+
     /** Boarding history for a student, most recent first. */
     @Query("""
             SELECT b FROM BoardingRecord b

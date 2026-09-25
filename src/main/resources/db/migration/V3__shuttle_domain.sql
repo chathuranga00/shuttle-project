@@ -6,12 +6,6 @@
 -- ── 1. Drop legacy fares table and recreate ────────────────────────────────
 -- Foreign keys in boarding_records reference fares indirectly (via amounts),
 -- so there is no FK to fares from other tables — safe to drop and recreate.
-ALTER TABLE fares DROP CONSTRAINT IF EXISTS uk_fares_route_stops_class;
-ALTER TABLE fares DROP CONSTRAINT IF EXISTS fk_fares_from_stop;
-ALTER TABLE fares DROP CONSTRAINT IF EXISTS fk_fares_to_stop;
-ALTER TABLE fares DROP CONSTRAINT IF EXISTS fk_fares_route;
-ALTER TABLE fares DROP INDEX IF EXISTS idx_fares_route_id;
-
 DROP TABLE IF EXISTS fares;
 
 CREATE TABLE fares (

@@ -9,7 +9,9 @@ import com.shuttle.domain.entity.Trip;
 import com.shuttle.domain.entity.WalletTransaction;
 import com.shuttle.domain.repository.BoardingRecordRepository;
 import com.shuttle.domain.repository.WalletTransactionRepository;
+import com.shuttle.domain.enums.NotificationType;
 import com.shuttle.exception.ApiException;
+import com.shuttle.notification.NotificationService;
 import com.shuttle.wallet.WalletService;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -20,19 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Owns the write side of the boarding flow.
- *
- * <p>Ordering for the wallet-deduction path (critical for correctness):
- * <ol>
- *   <li>Acquire a PESSIMISTIC_WRITE lock on the wallet row and verify balance ≥ fare.
- *       This throws immediately if balance is insufficient — before any boarding record
- *       is written, so Hibernate session state remains clean.</li>
- *   <li>Deduct the balance and write a WalletTransaction row (referenceId = null initially).</li>
- *   <li>Save the BoardingRecord, now that the wallet check passed.</li>
- *   <li>Back-fill WalletTransaction.referenceId with the boarding record's ID.</li>
- * </ol>
- *
- * <p>Race-condition duplicate (trip+student): the DB unique constraint on
- * (trip_id, student_id) catches concurrent inserts; we return the winning record.
  */
 @Service
 @RequiredArgsConstructor
@@ -41,6 +30,7 @@ public class BoardingWriter {
     private final BoardingRecordRepository  boardingRecordRepository;
     private final WalletService             walletService;
     private final WalletTransactionRepository walletTxRepository;
+    private final NotificationService       notificationService;
 
     @Transactional
     public BoardingConfirmResponse save(Student student, Trip trip,
@@ -98,6 +88,20 @@ public class BoardingWriter {
         if (walletTx != null) {
             walletTx.setReferenceId(record.getId());
             walletTxRepository.save(walletTx);
+        }
+
+        if (student.getUser() != null) {
+            String routeName = trip.getRoute() != null ? trip.getRoute().getName() : "Shuttle";
+            String stopName = stop != null ? stop.getName() : "Bus Stop";
+            notificationService.createNotification(
+                    student.getUser(),
+                    "Boarding Confirmed",
+                    "You boarded " + routeName + " at " + stopName + ".",
+                    NotificationType.TRIP_UPDATE
+            );
+            if (walletTx != null && walletTx.getBalanceAfter() != null) {
+                notificationService.checkAndNotifyLowBalance(student.getUser(), walletTx.getBalanceAfter());
+            }
         }
 
         return toResponse(record, false);

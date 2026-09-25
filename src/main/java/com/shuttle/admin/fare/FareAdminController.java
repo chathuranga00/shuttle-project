@@ -28,8 +28,8 @@ public class FareAdminController {
     private final FareService fareService;
 
     @GetMapping
-    @Operation(summary = "List fares for a route")
-    public List<FareResponse> listByRoute(@RequestParam Long routeId) {
+    @Operation(summary = "List fares (optionally filtered by route)")
+    public List<FareResponse> listByRoute(@RequestParam(required = false) Long routeId) {
         return fareService.listByRoute(routeId);
     }
 

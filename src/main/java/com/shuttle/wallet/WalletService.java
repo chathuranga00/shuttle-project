@@ -27,6 +27,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import com.shuttle.domain.enums.NotificationType;
+import com.shuttle.notification.NotificationService;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +51,7 @@ public class WalletService {
     private final StudentRepository           studentRepository;
     private final PaymentGateway              paymentGateway;
     private final PaymentProperties           paymentProperties;
+    private final NotificationService         notificationService;
 
     // ── GET wallet ────────────────────────────────────────────────────────────
 
@@ -150,6 +158,15 @@ public class WalletService {
         payment.setWalletTransaction(tx);
         payment.setStatus(PaymentStatus.SUCCESS);
         paymentRepository.save(payment);
+
+        if (payment.getStudent() != null && payment.getStudent().getUser() != null) {
+            notificationService.createNotification(
+                    payment.getStudent().getUser(),
+                    "Payment Successful",
+                    "Your wallet was credited with LKR " + payment.getAmount() + ". Current balance: LKR " + newBalance + ".",
+                    NotificationType.PAYMENT
+            );
+        }
     }
 
     // ── Deduct fare (called by BoardingWriter in the same DB transaction) ─────

@@ -5,8 +5,12 @@ import com.shuttle.domain.enums.TripStatus;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.query.Param;
-public interface TripRepository extends JpaRepository<Trip, Long> {
+
+public interface TripRepository extends JpaRepository<Trip, Long>, JpaSpecificationExecutor<Trip> {
+
+    long countByStatus(TripStatus status);
 
     List<Trip> findByStatus(TripStatus status);
 

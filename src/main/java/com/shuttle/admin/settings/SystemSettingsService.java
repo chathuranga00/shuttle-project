@@ -61,10 +61,12 @@ public class SystemSettingsService {
                 .orElse(true);
     }
 
+    public static final String KEY_PASS_PRICE  = "pass.price.monthly";
+
     /** Typed accessor — monthly pass price in LKR (default 2500). */
     @Transactional(readOnly = true)
     public java.math.BigDecimal getMonthlyPassPrice() {
-        return settingRepository.findBySettingKey("pass.price.monthly")
+        return settingRepository.findBySettingKey(KEY_PASS_PRICE)
                 .map(s -> new java.math.BigDecimal(s.getSettingValue()))
                 .orElse(new java.math.BigDecimal("2500.00"));
     }
@@ -72,7 +74,7 @@ public class SystemSettingsService {
     /** Returns current GPS / system config as a typed DTO. */
     @Transactional(readOnly = true)
     public SystemConfigResponse getSystemConfig() {
-        return new SystemConfigResponse(getGpsRadiusMetres(), isGpsVerificationEnabled());
+        return new SystemConfigResponse(getGpsRadiusMetres(), isGpsVerificationEnabled(), getMonthlyPassPrice());
     }
 
     /** Update GPS settings via the typed config DTO. */
@@ -82,6 +84,10 @@ public class SystemSettingsService {
                "Radius in metres for GPS proximity check");
         upsert(KEY_GPS_ENABLED, String.valueOf(request.gpsVerificationEnabled()),
                "Whether GPS check is enforced during boarding");
+        if (request.monthlyPassPrice() != null) {
+            upsert(KEY_PASS_PRICE, request.monthlyPassPrice().setScale(2, java.math.RoundingMode.HALF_UP).toString(),
+                   "Monthly pass price in LKR");
+        }
         return getSystemConfig();
     }
 

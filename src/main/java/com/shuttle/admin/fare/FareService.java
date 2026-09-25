@@ -28,6 +28,11 @@ public class FareService {
 
     @Transactional(readOnly = true)
     public List<FareResponse> listByRoute(Long routeId) {
+        if (routeId == null) {
+            return fareRepository.findAll().stream()
+                    .map(this::toResponse)
+                    .collect(Collectors.toList());
+        }
         return fareRepository.findByRouteId(routeId).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());

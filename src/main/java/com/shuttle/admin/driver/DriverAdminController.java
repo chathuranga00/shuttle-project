@@ -58,4 +58,11 @@ public class DriverAdminController {
     public DriverResponse unassign(@PathVariable Long id) {
         return driverAdminService.unassign(id);
     }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Delete / deactivate driver")
+    public void delete(@PathVariable Long id) {
+        driverAdminService.delete(id);
+    }
 }

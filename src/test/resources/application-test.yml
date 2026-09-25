@@ -28,3 +28,5 @@ app:
     seed-password: Admin@1234
   pass:
     mock-paid-enabled: true
+  notification:
+    low-balance-threshold: 200.00

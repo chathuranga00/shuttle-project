@@ -10,6 +10,8 @@ import com.shuttle.domain.repository.PaymentRepository;
 import com.shuttle.exception.ApiException;
 import com.shuttle.payment.gateway.PaymentGateway;
 import com.shuttle.payment.gateway.PaymentGateway.GatewayPaymentStatus;
+import com.shuttle.domain.enums.NotificationType;
+import com.shuttle.notification.NotificationService;
 import com.shuttle.wallet.WalletService;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.Map;
@@ -20,18 +22,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Handles incoming payment webhooks from the gateway and the mock-callback endpoint.
- *
- * <p>Security contract: a payment is credited ONLY after both:
- * <ol>
- *   <li>The gateway's HMAC/hash signature is verified ({@link PaymentGateway#verifyPayment}).</li>
- *   <li>The payment is looked up by its internal ID and its current status is PENDING.</li>
- * </ol>
- *
- * <p>Idempotency: if the same {@code gatewayTransactionId} appears in a second webhook,
- * the existing PAID payment is returned without any re-crediting.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -41,6 +31,7 @@ public class PaymentWebhookService {
     private final MonthlyPassRepository monthlyPassRepository;
     private final WalletService         walletService;
     private final PaymentGateway        paymentGateway;
+    private final NotificationService   notificationService;
 
     /**
      * Processes a gateway webhook or mock-callback.
@@ -144,5 +135,14 @@ public class PaymentWebhookService {
         monthlyPassRepository.save(pass);
         payment.setStatus(PaymentStatus.SUCCESS);
         paymentRepository.save(payment);
+
+        if (payment.getStudent() != null && payment.getStudent().getUser() != null) {
+            notificationService.createNotification(
+                    payment.getStudent().getUser(),
+                    "Monthly Pass Activated",
+                    "Your monthly pass (#" + pass.getId() + ") is now active until " + pass.getValidTo() + ".",
+                    NotificationType.PASS
+            );
+        }
     }
 }

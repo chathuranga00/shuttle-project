@@ -111,6 +111,15 @@ public class DriverAdminService {
         return toResponse(load(driverId));
     }
 
+    @Transactional
+    public void delete(Long driverId) {
+        Driver driver = load(driverId);
+        driver.setStatus(DriverStatus.INACTIVE);
+        driver.getUser().setStatus(com.shuttle.domain.enums.UserStatus.INACTIVE);
+        assignmentRepository.closeAssignmentsForDriver(driverId, Instant.now());
+        driverRepository.save(driver);
+    }
+
     // ── Private helpers ───────────────────────────────────────────────────────
 
     private Driver load(Long id) {

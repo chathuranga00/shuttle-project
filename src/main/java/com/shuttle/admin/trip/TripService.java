@@ -19,6 +19,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.shuttle.domain.enums.NotificationType;
+import com.shuttle.notification.NotificationService;
+import com.shuttle.notification.dto.AnnouncementRequest;
+
 @Service
 @RequiredArgsConstructor
 public class TripService {
@@ -27,6 +31,7 @@ public class TripService {
     private final RouteRepository  routeRepository;
     private final BusRepository    busRepository;
     private final DriverRepository driverRepository;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public List<TripResponse> listAll() {
@@ -134,7 +139,33 @@ public class TripService {
                     "Trip is already cancelled.");
         }
         trip.setStatus(TripStatus.CANCELLED);
-        return toResponse(tripRepository.save(trip));
+        Trip saved = tripRepository.save(trip);
+
+        String routeName = trip.getRoute() != null ? trip.getRoute().getName() : "Shuttle Route";
+        String cancelMsg = "Trip #" + trip.getId() + " on route " + routeName + " has been cancelled.";
+
+        if (trip.getDriver() != null && trip.getDriver().getUser() != null) {
+            notificationService.createNotification(
+                    trip.getDriver().getUser(),
+                    "Trip Cancelled",
+                    cancelMsg,
+                    NotificationType.TRIP_UPDATE
+            );
+        }
+
+        try {
+            notificationService.sendAnnouncement(new AnnouncementRequest("Trip Cancelled", cancelMsg, "STUDENT"));
+        } catch (Exception e) {
+            // Ignore if announcement has no active students
+        }
+
+        return toResponse(saved);
+    }
+
+    @Transactional
+    public void deleteTrip(Long id) {
+        Trip trip = load(id);
+        tripRepository.delete(trip);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

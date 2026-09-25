@@ -60,4 +60,18 @@ public interface MonthlyPassRepository extends JpaRepository<MonthlyPass, Long> 
               AND p.validTo < :today
             """)
     int expirePassesBefore(@Param("today") LocalDate today);
+
+    @Query("SELECT COUNT(p) FROM MonthlyPass p WHERE p.status = 'ACTIVE' AND p.validTo >= :today")
+    long countActivePasses(@Param("today") LocalDate today);
+
+    List<MonthlyPass> findByValidFromBetween(LocalDate from, LocalDate to);
+
+    @Query("""
+            SELECT p FROM MonthlyPass p
+            WHERE p.status = 'ACTIVE'
+              AND p.validTo BETWEEN :today AND :threeDaysLater
+            """)
+    List<MonthlyPass> findActivePassesExpiringBetween(
+            @Param("today") LocalDate today,
+            @Param("threeDaysLater") LocalDate threeDaysLater);
 }
