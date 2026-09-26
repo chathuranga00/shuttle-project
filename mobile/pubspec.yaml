@@ -50,6 +50,13 @@ dependencies:
   # UI helpers
   cupertino_icons: ^1.0.8
 
+  # Interactive map & live tracking
+  flutter_map: ^8.3.2
+  latlong2: ^0.10.1
+
+  # WebSocket for real-time STOMP tracking
+  web_socket_channel: ^3.0.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

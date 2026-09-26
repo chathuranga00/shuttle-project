@@ -50,4 +50,8 @@ class ApiEndpoints {
 
   // Settings
   static const String settingsConfig = '/api/admin/settings/config';
+
+  // Live Tracking
+  static const String liveLocations = '/api/admin/trips/locations';
+  static const String activeTrips = '/api/trips/active';
 }

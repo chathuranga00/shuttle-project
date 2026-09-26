@@ -26,6 +26,7 @@ class AdminShell extends ConsumerWidget {
       _NavItem('Buses', Icons.directions_bus_outlined, '/buses'),
       _NavItem('Routes & Stops', Icons.alt_route_outlined, '/routes'),
       _NavItem('Trips', Icons.departure_board_outlined, '/trips'),
+      _NavItem('Live Fleet Map', Icons.radar_outlined, '/live-map'),
       _NavItem('Payments', Icons.payment_outlined, '/payments'),
       _NavItem('Reports', Icons.analytics_outlined, '/reports'),
       _NavItem('Settings', Icons.tune_outlined, '/settings'),

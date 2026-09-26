@@ -24,6 +24,7 @@ import com.shuttle.domain.repository.NotificationRepository;
 import com.shuttle.domain.repository.RouteStopRepository;
 import com.shuttle.domain.repository.TripRepository;
 import com.shuttle.domain.repository.UserRepository;
+import com.shuttle.location.BusLocationService;
 import com.shuttle.driver.dto.BoardingItemResponse;
 import com.shuttle.driver.dto.DriverAssignmentResponse;
 import com.shuttle.driver.dto.DriverTripHistoryItem;
@@ -59,6 +60,7 @@ public class DriverService {
     private final EmergencyReportRepository     emergencyReportRepository;
     private final NotificationRepository        notificationRepository;
     private final AdminRepository               adminRepository;
+    private final BusLocationService            busLocationService;
 
     /**
      * Resolves the Driver entity from the authenticated principal.
@@ -168,7 +170,12 @@ public class DriverService {
 
         trip.setStatus(TripStatus.COMPLETED);
         trip.setActualEnd(Instant.now());
-        return toTripResponse(tripRepository.save(trip));
+        Trip saved = tripRepository.save(trip);
+
+        // Clear bus location so clients do not see a ghost bus
+        busLocationService.clearLocationForTrip(trip.getId(), trip.getBus() != null ? trip.getBus().getId() : null);
+
+        return toTripResponse(saved);
     }
 
     /**

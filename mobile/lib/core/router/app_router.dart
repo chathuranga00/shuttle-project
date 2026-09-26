@@ -28,6 +28,7 @@ import '../../features/wallet/presentation/screens/payment_history_screen.dart';
 import '../../features/wallet/presentation/screens/payment_result_screen.dart';
 import '../../features/wallet/presentation/screens/payment_webview_screen.dart';
 import '../../features/notification/presentation/screens/notifications_screen.dart';
+import '../../features/tracking/presentation/screens/live_bus_tracking_screen.dart';
 import '../../features/wallet/presentation/screens/wallet_screen.dart';
 
 // ── Route name constants ──────────────────────────────────────────────────────
@@ -59,6 +60,7 @@ class AppRoutes {
   static const driverAssignedRoute = '/driver/route';
   static const driverEmergency   = '/driver/emergency';
   static const driverTripHistory = '/driver/history';
+  static const liveTracking      = '/tracking';
 }
 
 // ── Router provider ───────────────────────────────────────────────────────────
@@ -119,6 +121,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return BusStopsScreen(
             routeId:   extra['routeId']   as int,
             routeName: extra['routeName'] as String,
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.liveTracking,
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return LiveBusTrackingScreen(
+            tripId: extra?['tripId'] as int?,
+            routeId: extra?['routeId'] as int?,
+            routeName: extra?['routeName'] as String?,
           );
         },
       ),

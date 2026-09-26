@@ -149,9 +149,15 @@ class StudentDashboardScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // ── My Bus Card tile ─────────────────────────────────
+                  // ── Quick Actions ─────────────────────────────────────
                   Text('Quick Actions', style: theme.textTheme.titleLarge),
                   const SizedBox(height: 12),
+                  _ActionTile(
+                    icon: Icons.map_rounded,
+                    label: 'Track Bus (Live GPS)',
+                    subtitle: 'Real-time bus location & route stops',
+                    onTap: () => context.push(AppRoutes.liveTracking),
+                  ),
                   _ActionTile(
                     icon: Icons.credit_card_rounded,
                     label: 'My Bus Card',

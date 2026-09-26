@@ -157,6 +157,33 @@ class DriverRepository {
     }
   }
 
+  /// POST /api/driver/trips/{tripId}/location
+  /// Sends current GPS location of the bus for an active trip.
+  Future<void> sendLocationUpdate({
+    required int tripId,
+    required double latitude,
+    required double longitude,
+    double? heading,
+    double? speed,
+  }) async {
+    try {
+      await _dio.post(
+        '/api/driver/trips/$tripId/location',
+        data: {
+          'latitude': latitude,
+          'longitude': longitude,
+          if (heading != null) 'heading': heading,
+          if (speed != null) 'speed': speed,
+        },
+      );
+    } on DioException catch (e) {
+      // 429 Too Many Requests rate-limiting is safe to suppress for streaming GPS updates
+      if (e.response?.statusCode != 429) {
+        throw _wrapException(e);
+      }
+    }
+  }
+
   ApiException _wrapException(DioException e) {
     if (e.error is ApiException) {
       return e.error as ApiException;

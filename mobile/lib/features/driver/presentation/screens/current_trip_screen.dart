@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../data/driver_location_service.dart';
 import '../../data/models/driver_trip.dart';
 import '../providers/driver_providers.dart';
 
@@ -54,9 +55,10 @@ class _CurrentTripScreenState extends ConsumerState<CurrentTripScreen> {
     setState(() => _isActionInProgress = false);
 
     if (success) {
+      ref.read(driverLocationServiceProvider.notifier).startTracking(trip.id);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Trip started successfully! Live boarding is now active.'),
+          content: Text('Trip started successfully! Live boarding & GPS sharing are now active.'),
           backgroundColor: Colors.green,
         ),
       );
@@ -103,6 +105,7 @@ class _CurrentTripScreenState extends ConsumerState<CurrentTripScreen> {
     setState(() => _isActionInProgress = false);
 
     if (success) {
+      ref.read(driverLocationServiceProvider.notifier).stopTracking();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Trip completed and closed successfully.'),
@@ -199,6 +202,16 @@ class _CurrentTripScreenState extends ConsumerState<CurrentTripScreen> {
                 ),
               ),
             );
+          }
+
+          // If trip is currently active, ensure location sharing is started
+          if (trip.isActive) {
+            final locState = ref.watch(driverLocationServiceProvider);
+            if (!locState.isSharing && !locState.isPermissionDenied && !locState.isGpsServiceDisabled) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ref.read(driverLocationServiceProvider.notifier).startTracking(trip.id);
+              });
+            }
           }
 
           return _TripDetailsView(
@@ -332,6 +345,10 @@ class _TripDetailsView extends ConsumerWidget {
               ],
             ),
           ),
+
+        // ── Persistent Location Sharing Indicator (Near real-time GPS) ─
+        if (trip.isActive)
+          _LocationSharingIndicator(trip: trip),
 
         // ── Metric Tiles Row ───────────────────────────────────────────
         Padding(
@@ -737,3 +754,160 @@ class _MetricCard extends StatelessWidget {
     );
   }
 }
+
+class _LocationSharingIndicator extends ConsumerWidget {
+  const _LocationSharingIndicator({required this.trip});
+
+  final DriverTrip trip;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(driverLocationServiceProvider);
+
+    if (state.isPermissionDenied) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.amber.shade50,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.amber.shade400),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.location_off_rounded, color: Colors.amber.shade900, size: 22),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Location permission denied',
+                    style: TextStyle(
+                      color: Colors.amber.shade900,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Students cannot see this bus on the map.',
+                    style: TextStyle(color: Colors.amber.shade800, fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                ref.read(driverLocationServiceProvider.notifier).startTracking(trip.id);
+              },
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text('Retry', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (state.isGpsServiceDisabled) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.orange.shade50,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.orange.shade400),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.gps_off_rounded, color: Colors.orange.shade900, size: 22),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Phone GPS is turned off. Please enable device location.',
+                style: TextStyle(color: Colors.orange.shade900, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final lastSent = state.lastSentTime;
+    final timeStr = lastSent != null
+        ? DateFormat.jms().format(lastSent)
+        : 'Starting...';
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.teal.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.teal.shade300),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.teal.shade100,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.share_location_rounded,
+              color: Colors.teal,
+              size: 16,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Text(
+                      'Sharing location',
+                      style: TextStyle(
+                        color: Colors.teal,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    SizedBox(width: 6),
+                    Text(
+                      '• GPS Active',
+                      style: TextStyle(
+                        color: Colors.teal,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  'Students see live bus position • Last sent: $timeStr',
+                  style: TextStyle(color: Colors.teal.shade700, fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            width: 8,
+            height: 8,
+            decoration: const BoxDecoration(
+              color: Colors.teal,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

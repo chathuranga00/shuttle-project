@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.shuttle.domain.enums.NotificationType;
 import com.shuttle.notification.NotificationService;
 import com.shuttle.notification.dto.AnnouncementRequest;
+import com.shuttle.location.BusLocationService;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +33,7 @@ public class TripService {
     private final BusRepository    busRepository;
     private final DriverRepository driverRepository;
     private final NotificationService notificationService;
+    private final BusLocationService busLocationService;
 
     @Transactional(readOnly = true)
     public List<TripResponse> listAll() {
@@ -121,7 +123,9 @@ public class TripService {
         assertStatus(trip, TripStatus.IN_PROGRESS, "complete");
         trip.setStatus(TripStatus.COMPLETED);
         trip.setActualEnd(Instant.now());
-        return toResponse(tripRepository.save(trip));
+        Trip saved = tripRepository.save(trip);
+        busLocationService.clearLocationForTrip(trip.getId(), trip.getBus() != null ? trip.getBus().getId() : null);
+        return toResponse(saved);
     }
 
     /**
@@ -158,6 +162,8 @@ public class TripService {
         } catch (Exception e) {
             // Ignore if announcement has no active students
         }
+
+        busLocationService.clearLocationForTrip(trip.getId(), trip.getBus() != null ? trip.getBus().getId() : null);
 
         return toResponse(saved);
     }

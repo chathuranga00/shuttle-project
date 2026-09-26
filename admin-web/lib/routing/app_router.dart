@@ -13,6 +13,7 @@ import '../features/payments/payments_screen.dart';
 import '../features/reports/reports_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/qr_print/qr_print_screen.dart';
+import '../features/live_map/live_map_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -85,6 +86,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/qr-print',
             builder: (context, state) => const QrPrintScreen(),
+          ),
+          GoRoute(
+            path: '/live-map',
+            builder: (context, state) => const LiveMapScreen(),
           ),
         ],
       ),

@@ -114,6 +114,13 @@ public class SecurityConfig {
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
 
+                // WebSocket STOMP endpoint for live tracking
+                .requestMatchers("/ws/**", "/ws").permitAll()
+
+                // Live bus location & active trips — any authenticated user (student, driver, admin)
+                .requestMatchers(HttpMethod.GET, "/api/trips/*/location").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/trips/active").authenticated()
+
                 // Admin only
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
 

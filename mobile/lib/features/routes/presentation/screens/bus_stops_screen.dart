@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:go_router/go_router.dart';
+import '../../../../core/router/app_router.dart';
 import '../../data/models/route_stop_with_fare.dart';
 import '../providers/route_provider.dart';
 
@@ -23,6 +25,19 @@ class BusStopsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(routeName),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.map_rounded),
+            tooltip: 'Track Live Bus on Map',
+            onPressed: () {
+              context.push(
+                AppRoutes.liveTracking,
+                extra: {
+                  'routeId': routeId,
+                  'routeName': routeName,
+                },
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'Refresh',
