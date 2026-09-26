@@ -1,0 +1,39 @@
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+*.key
+*.jks
+*.keystore
+key.properties
+
+# IDE & Editor
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# OS Files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Logs
+logs/
+*.log
+
+# Build Outputs
+**/target/
+**/build/
+**/.dart_tool/
+**/.gradle/
+**/local.properties
+**/.flutter-plugins-dependencies
+**/.git_sub_backup/
+**/.cxx/
+**/GeneratedPluginRegistrant.java
+

@@ -1,0 +1,8 @@
+# Release Keystore Properties Example
+# Copy this file to mobile/android/key.properties and fill in your actual keystore values.
+# NEVER commit key.properties or .jks/.keystore files to Git!
+
+storePassword=YourKeystorePasswordHere
+keyPassword=YourKeyPasswordHere
+keyAlias=shuttle_release_key
+storeFile=../upload-keystore.jks

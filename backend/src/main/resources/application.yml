@@ -1,0 +1,110 @@
+spring:
+  application:
+    name: shuttle-backend
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: ${SERVER_PORT:8080}
+  forward-headers-strategy: framework
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    db:
+      enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:shuttle_db}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:Csempire076@}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+app:
+  cors:
+    allowed-origin-patterns: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*}
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+  jwt:
+    secret: ${JWT_SECRET:dev-only-insecure-secret-do-not-use-in-prod}
+    expiration-ms: ${JWT_EXPIRATION_MS:900000}
+    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
+  admin:
+    seed-email: ${ADMIN_SEED_EMAIL:admin@shuttle.dev}
+    seed-password: ${ADMIN_SEED_PASSWORD:Admin@1234}
+  pass:
+    # Set to true in dev to treat a purchase as immediately ACTIVE (no payment gateway).
+    mock-paid-enabled: ${PASS_MOCK_PAID:true}
+  payment:
+    # Gateway implementation: "mock" (default) or "payhere"
+    gateway: ${PAYMENT_GATEWAY:mock}
+    # Base URL used when constructing webhook callback URLs
+    base-url: ${APP_BASE_URL:http://localhost:8080}
+  notification:
+    low-balance-threshold: ${WALLET_LOW_BALANCE_THRESHOLD:200.00}
+    firebase-credentials: ${FIREBASE_CREDENTIALS:}
+    firebase-config-path: ${FIREBASE_CONFIG_PATH:}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/${DB_NAME:shuttle_db}?useSSL=true&requireSSL=true&serverTimezone=UTC
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    show-sql: false
+
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS}
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: ${JWT_EXPIRATION_MS:900000}
+    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
+  pass:
+    mock-paid-enabled: false   # require real payment in prod
+  payment:
+    gateway: payhere
+    base-url: ${APP_BASE_URL}

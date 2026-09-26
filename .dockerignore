@@ -1,0 +1,9 @@
+**/.git
+**/.vscode
+**/.idea
+**/build
+**/.dart_tool
+**/target
+**/*.log
+logs/
+.gradle/

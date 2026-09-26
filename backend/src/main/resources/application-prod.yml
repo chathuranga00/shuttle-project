@@ -1,0 +1,65 @@
+# Production Configuration Profile
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:mysql://${DB_HOST:mysql}:${DB_PORT:3306}/${DB_NAME:shuttle_db}?useSSL=true&requireSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      pool-name: ShuttleHikariPool
+      maximum-pool-size: ${DB_POOL_MAX:20}
+      minimum-idle: ${DB_POOL_MIN_IDLE:5}
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+      leak-detection-threshold: 30000
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    locations: classpath:db/migration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+  health:
+    db:
+      enabled: true
+
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:https://admin.shuttle.university.lk,https://shuttle.university.lk}
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: ${JWT_EXPIRATION_MS:900000}
+    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
+  admin:
+    seed-email: ${ADMIN_SEED_EMAIL:admin@shuttle.dev}
+    seed-password: ${ADMIN_SEED_PASSWORD:}
+  pass:
+    mock-paid-enabled: false
+  payment:
+    gateway: ${PAYMENT_GATEWAY:payhere}
+    base-url: ${APP_BASE_URL}
+  notification:
+    low-balance-threshold: ${WALLET_LOW_BALANCE_THRESHOLD:200.00}
+    firebase-credentials: ${FIREBASE_CREDENTIALS:}
+    firebase-config-path: ${FIREBASE_CONFIG_PATH:}

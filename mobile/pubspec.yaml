@@ -1,0 +1,86 @@
+name: shuttle
+description: University Shuttle Management App
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.13.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Navigation
+  go_router: ^14.6.2
+
+  # Networking
+  dio: ^5.7.0
+
+  # Secure storage
+  flutter_secure_storage: ^9.2.2
+
+  # Serialization
+  json_annotation: ^4.9.0
+
+  # Internationalization
+  intl: ^0.19.0
+
+  # QR code rendering
+  qr_flutter: ^4.1.0
+
+  # QR code scanning (camera)
+  mobile_scanner: ^5.2.3
+
+  # Connectivity monitoring
+  connectivity_plus: ^6.1.1
+
+  # UUID for idempotency keys
+  uuid: ^4.5.1
+
+  # GPS location
+  geolocator: ^13.0.2
+
+  # WebView for payment checkout
+  webview_flutter: ^4.10.0
+
+  # UI helpers
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+  # Code generation
+  build_runner: ^2.4.13
+  json_serializable: ^6.8.0
+  riverpod_generator: ^2.6.1
+  custom_lint: ^0.7.5
+  riverpod_lint: ^2.6.1
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.4
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#1A3A6B"
+  adaptive_icon_foreground: "assets/images/app_icon.png"
+
+flutter_native_splash:
+  color: "#1A3A6B"
+  image: "assets/images/splash_logo.png"
+  android_12:
+    image: "assets/images/splash_logo.png"
+    icon_background_color: "#1A3A6B"
+  web: false
